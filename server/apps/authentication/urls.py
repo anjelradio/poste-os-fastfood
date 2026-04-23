@@ -8,11 +8,13 @@ from .views import (
     ForgotPasswordRequestOtpView,
     ForgotPasswordVerifyOtpView,
     LoginView,
+    LogoutView,
     UpdateInfoView,
 )
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
     path(
         "forgot-password/request-otp/",
         ForgotPasswordRequestOtpView.as_view(),
