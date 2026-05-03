@@ -2,11 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { UpdateProductRequestSchema } from "@/features/products/data/schemas/create-product-request.schema";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import { updateProductAction } from "../../actions/product-actions";
 import {
   showSuccessToast,
@@ -23,33 +19,22 @@ export default function EditProductForm({
   const router = useRouter();
   const id = +params.id!;
   const handleSubmit = async (formData: FormData) => {
-    const data = {
-      name: formData.get("name"),
-      price: formData.get("price"),
-      category: formData.get("category"),
-      image: formData.get("image"),
-      hasRecipe: formData.get("hasRecipe"),
-    };
-    const result = UpdateProductRequestSchema.safeParse(data);
-    if (!result.success) {
-      handleZodErrors(result.error.issues);
-      return;
-    }
-    const response = await updateProductAction(id, result.data);
-
-    if (response.ok) {
-      showSuccessToast("Producto Actualizado correctamente");
-      router.push("/administracion/productos");
-      router.refresh();
-      return;
-    }
-
-    if (response.validationErrors) {
-      handleValidationErrors(response.validationErrors);
-      return;
-    }
-
-    handleApiErrors(response.errors);
+    await submitWithSchema({
+      schema: UpdateProductRequestSchema,
+      payload: {
+        name: formData.get("name"),
+        price: formData.get("price"),
+        category: formData.get("category"),
+        image: formData.get("image"),
+        hasRecipe: formData.get("hasRecipe"),
+      },
+      action: async (data) => updateProductAction(id, data),
+      onSuccess: () => {
+        showSuccessToast("Producto Actualizado correctamente");
+        router.push("/administracion/productos");
+        router.refresh();
+      },
+    });
   };
   return (
     <GradientFormCard gradientId="edit-product-form" title="Editar Producto">

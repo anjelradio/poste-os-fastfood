@@ -17,7 +17,7 @@ export async function updateOrderStatus(orderId: number) {
         throw new Error("Error al actualizar estado");
     }
 
-    revalidateTag("orders");
+    revalidateTag("orders", "max");
 
     return { ok: true };
 }

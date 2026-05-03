@@ -38,7 +38,7 @@ export default function ProfileInfoCard() {
           <label className="block text-sm font-semibold text-gray-300 mb-2">Apellidos</label>
           <input
             type="text"
-            value={user?.last_name ?? ""}
+            value={user?.lastName ?? ""}
             disabled
             className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-600/50 text-white cursor-not-allowed opacity-75"
           />

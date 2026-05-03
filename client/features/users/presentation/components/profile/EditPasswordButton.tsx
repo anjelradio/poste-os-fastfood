@@ -3,11 +3,7 @@
 import AppDialogModal from "@/features/shared/components/modals/AppDialogModal";
 import FormSubmitButton from "@/features/shared/components/submit/FormSubmitButton";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
 import { ChangePasswordRequestSchema } from "@/features/users/data/schemas/change-password-request.schema";
 import { changePasswordAction } from "@/features/users/presentation/actions/profile-actions";
@@ -17,33 +13,19 @@ export default function EditPasswordButton() {
   const [open, setOpen] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
-    const data = {
-      current_password: formData.get("current_password"),
-      new_password: formData.get("new_password"),
-      confirm_password: formData.get("confirm_password"),
-    };
-
-    const result = ChangePasswordRequestSchema.safeParse(data);
-
-    if (!result.success) {
-      handleZodErrors(result.error.issues);
-      return;
-    }
-
-    const response = await changePasswordAction(result.data);
-
-    if (!response.ok) {
-      if (response.validationErrors) {
-        handleValidationErrors(response.validationErrors);
-        return;
-      }
-
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    showSuccessToast("Contraseña actualizada correctamente");
-    setOpen(false);
+    await submitWithSchema({
+      schema: ChangePasswordRequestSchema,
+      payload: {
+        currentPassword: formData.get("currentPassword"),
+        newPassword: formData.get("newPassword"),
+        confirmPassword: formData.get("confirmPassword"),
+      },
+      action: changePasswordAction,
+      onSuccess: () => {
+        showSuccessToast("Contraseña actualizada correctamente");
+        setOpen(false);
+      },
+    });
   };
 
   return (
@@ -66,21 +48,21 @@ export default function EditPasswordButton() {
         <form action={handleSubmit} className="space-y-5">
           <CustomFieldedFormText
             type="password"
-            name="current_password"
+            name="currentPassword"
             label="Contraseña Actual"
             placeholder="Contraseña actual"
           />
 
           <CustomFieldedFormText
             type="password"
-            name="new_password"
+            name="newPassword"
             label="Nueva Contraseña"
             placeholder="Nueva contraseña"
           />
 
           <CustomFieldedFormText
             type="password"
-            name="confirm_password"
+            name="confirmPassword"
             label="Confirmar Nueva Contraseña"
             placeholder="Confirma la nueva contraseña"
           />

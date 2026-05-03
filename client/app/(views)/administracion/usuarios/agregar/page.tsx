@@ -5,7 +5,11 @@ import UserForm from "@/features/users/presentation/components/users/UserForm";
 export default function AddUserPage() {
   return (
     <div className="flex-1 pb-10">
-      <Breadcrumb parent="Gestión de Usuarios" child="Registrar Usuario" />
+      <Breadcrumb
+        parent="Gestión de Usuarios"
+        child="Registrar Usuario"
+        backHref="/administracion/usuarios"
+      />
       <AddUserForm>
         <UserForm />
       </AddUserForm>

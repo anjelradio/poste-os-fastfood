@@ -1,4 +1,4 @@
-import { User } from "@/lib/types";
+import type { User } from "@/features/authentication/domain/entities/user";
 import { StateCreator } from "zustand";
 
 export interface AuthSlice {

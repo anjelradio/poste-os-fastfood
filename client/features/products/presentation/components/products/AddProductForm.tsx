@@ -2,11 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CreateProductRequestSchema } from "@/features/products/data/schemas/create-product-request.schema";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import {
   showSuccessToast,
 } from "@/features/shared/components/toast/ToastNotifications";
@@ -22,34 +18,22 @@ export default function AddProductForm({
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
-    const data = {
-      name: formData.get("name"),
-      price: formData.get("price"),
-      category: formData.get("category"),
-      image: formData.get("image"),
-      hasRecipe: formData.get("hasRecipe"),
-    };
-    const result = CreateProductRequestSchema.safeParse(data);
-    if (!result.success) {
-      handleZodErrors(result.error.issues);
-      return;
-    }
-
-    const response = await createProductAction(result.data);
-
-    if (response.ok) {
-      showSuccessToast("Producto creado correctamente");
-      router.push("/administracion/productos");
-      router.refresh();
-      return;
-    }
-
-    if (response.validationErrors) {
-      handleValidationErrors(response.validationErrors);
-      return;
-    }
-
-    handleApiErrors(response.errors);
+    await submitWithSchema({
+      schema: CreateProductRequestSchema,
+      payload: {
+        name: formData.get("name"),
+        price: formData.get("price"),
+        category: formData.get("category"),
+        image: formData.get("image"),
+        hasRecipe: formData.get("hasRecipe"),
+      },
+      action: createProductAction,
+      onSuccess: () => {
+        showSuccessToast("Producto creado correctamente");
+        router.push("/administracion/productos");
+        router.refresh();
+      },
+    });
   };
   return (
     <GradientFormCard gradientId="add-product-form" title="Crear Nuevo Producto">

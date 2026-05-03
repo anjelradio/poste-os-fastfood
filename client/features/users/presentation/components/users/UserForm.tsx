@@ -58,9 +58,9 @@ export default function UserForm({ user }: { user?: User }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CustomFieldedFormText
-          name="last_name"
+          name="lastName"
           label="Apellidos"
-          defaultValue={user?.last_name}
+          defaultValue={user?.lastName}
           placeholder="Apellidos"
         />
 

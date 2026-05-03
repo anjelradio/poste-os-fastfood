@@ -1,28 +1,38 @@
 import { getAccessToken } from "@/lib/api/get-token";
 import { env } from "@/lib/config/env";
 import {
-  errorResult,
-  serverValidationErrorResult,
-  zodValidationErrorResult,
-} from "@/features/shared/data/infrastructure/api-error-result";
+  apiRequestJson,
+  apiRequestMaybeJson,
+  apiRequestStatus,
+} from "@/features/shared/data/infrastructure/api/api-client";
+import { parseWithSchema } from "@/features/shared/data/infrastructure/api/parse-with-schema";
 import {
   type ApiMaybeResult,
   type ApiResult,
   type ApiStatusResult,
 } from "@/features/shared/data/types/api-result";
-import { ProductSchema, type Product } from "../../domain/entities/product";
+import type { Product } from "../../domain/entities/product";
+import {
+  toProductEntity,
+  toProductEntityList,
+  toProductsQueryParams,
+  toProductRequestDto,
+  type ProductsFilters,
+} from "../mappers/product.mapper";
 import {
   CreateProductRequestSchema,
   UpdateProductRequestSchema,
 } from "../schemas/create-product-request.schema";
-import { ProductValidationErrorsSchema } from "../schemas/product-validation-errors.schema";
 import {
   ProductsListResponseSchema,
-  type ProductsListResponse,
+  type ProductsListResponseDto,
 } from "../schemas/products-list-response.schema";
+import { ProductResponseDtoSchema } from "../schemas/product-response.schema";
 
-const ProductsByCategoryResponseSchema = ProductSchema.array();
-type ProductsByCategoryResponse = Product[];
+type ProductsListResponse = {
+  products: Product[];
+  total: number;
+};
 
 const baseUrl = `${env.API_URL}/products`;
 
@@ -30,216 +40,98 @@ export const productsApi = {
   async getProducts(
     page: number,
     pageSize: number,
-    filters?: { productName: string; category: string },
+    filters?: ProductsFilters,
   ): Promise<ApiResult<ProductsListResponse>> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-    });
-
-    if (filters?.productName) {
-      params.set("productName", filters.productName);
-    }
-    if (filters?.category) {
-      params.set("category", filters.category);
-    }
+    const params = toProductsQueryParams({ page, pageSize, filters });
 
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/?${params.toString()}`, {
-        cache: "no-store",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!res.ok) {
-        return errorResult("Error al obtener los productos.");
-      }
-
-      const responseData = await res.json();
-      const parsed = ProductsListResponseSchema.safeParse(responseData);
-
-      if (!parsed.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsed.data,
-      };
-    } catch {
-      return errorResult("Error al obtener los productos.");
-    }
+    return apiRequestJson({
+      url: `${baseUrl}/?${params.toString()}`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener los productos.",
+      responseSchema: ProductsListResponseSchema,
+      mapData: (dto: ProductsListResponseDto) => ({
+        products: toProductEntityList(dto.products),
+        total: dto.total,
+      }),
+    });
   },
 
   async getProductById(id: number): Promise<ApiMaybeResult<Product>> {
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/${id}/`, {
-        cache: "no-store",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (res.status === 404) {
-        return {
-          ok: true,
-          data: null,
-        };
-      }
-
-      if (!res.ok) {
-        return errorResult("Error al obtener el producto.");
-      }
-
-      const responseData = await res.json();
-      const parsed = ProductSchema.safeParse(responseData);
-
-      if (!parsed.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsed.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestMaybeJson({
+      url: `${baseUrl}/${id}/`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener el producto.",
+      responseSchema: ProductResponseDtoSchema,
+      mapData: toProductEntity,
+    });
   },
 
   async getProductsByCategory(
     categorySlug: string,
-  ): Promise<ApiResult<ProductsByCategoryResponse>> {
+  ): Promise<ApiResult<Product[]>> {
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/category/${categorySlug}/`, {
-        cache: "no-store",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!res.ok) {
-        return errorResult("Error al obtener los productos por categoria.");
-      }
-
-      const responseData = await res.json();
-      const parsedData = ProductsByCategoryResponseSchema.safeParse(responseData);
-
-      if (!parsedData.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsedData.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestJson({
+      url: `${baseUrl}/category/${categorySlug}/`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener los productos por categoria.",
+      responseSchema: ProductResponseDtoSchema.array(),
+      mapData: toProductEntityList,
+    });
   },
 
   async createProduct(data: unknown): Promise<ApiStatusResult> {
-    const parsedData = CreateProductRequestSchema.safeParse(data);
-
-    if (!parsedData.success) {
-      return zodValidationErrorResult(parsedData.error);
+    const input = parseWithSchema(CreateProductRequestSchema, data);
+    if (!input.ok) {
+      return input;
     }
 
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify(parsedData.data),
-      });
-
-      if (res.status === 400) {
-        return serverValidationErrorResult(
-          res,
-          ProductValidationErrorsSchema,
-          "Error al crear el producto.",
-        );
-      }
-
-      if (!res.ok) {
-        return errorResult("Error al crear el producto.");
-      }
-
-      return { ok: true };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestStatus({
+      url: `${baseUrl}/`,
+      method: "POST",
+      token: token ?? undefined,
+      body: toProductRequestDto(input.data),
+      fallbackMessage: "Error al crear el producto.",
+    });
   },
 
-  async updateProduct(
-    id: number,
-    data: unknown,
-  ): Promise<ApiStatusResult> {
-    const parsedData = UpdateProductRequestSchema.safeParse(data);
-
-    if (!parsedData.success) {
-      return zodValidationErrorResult(parsedData.error);
+  async updateProduct(id: number, data: unknown): Promise<ApiStatusResult> {
+    const input = parseWithSchema(UpdateProductRequestSchema, data);
+    if (!input.ok) {
+      return input;
     }
 
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify(parsedData.data),
-      });
-
-      if (res.status === 400) {
-        return serverValidationErrorResult(
-          res,
-          ProductValidationErrorsSchema,
-          "Error al actualizar el producto.",
-        );
-      }
-
-      if (!res.ok) {
-        return errorResult("Error al actualizar el producto.");
-      }
-
-      return { ok: true };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestStatus({
+      url: `${baseUrl}/${id}/`,
+      method: "PUT",
+      token: token ?? undefined,
+      body: toProductRequestDto(input.data),
+      fallbackMessage: "Error al actualizar el producto.",
+    });
   },
 
   async deleteProduct(id: number): Promise<ApiStatusResult> {
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/${id}/`, {
-        method: "DELETE",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!res.ok) {
-        return errorResult("Error al eliminar el producto.");
-      }
-
-      return { ok: true };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestStatus({
+      url: `${baseUrl}/${id}/`,
+      method: "DELETE",
+      token: token ?? undefined,
+      fallbackMessage: "Error al eliminar el producto.",
+    });
   },
 };

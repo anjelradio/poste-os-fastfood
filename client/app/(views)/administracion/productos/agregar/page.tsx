@@ -9,6 +9,7 @@ export default function AddProductPage() {
             <Breadcrumb
                 parent="Gestión del Catálogo"
                 child="Agregar Producto"
+                backHref="/administracion/productos"
             />
             <AddProductForm>
                 <ProductForm />

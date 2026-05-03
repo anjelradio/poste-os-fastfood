@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { LogSchema } from "../../../domain/entities/log";
+import { LogResponseDtoSchema } from "./log-response.schema";
 
 export const LogsListResponseSchema = z.object({
-  data: z.array(LogSchema),
-  totalLogs: z.number(),
+  data: z.array(LogResponseDtoSchema),
+  total_logs: z.number(),
 });
 
-export type LogsListResponse = z.infer<typeof LogsListResponseSchema>;
+export type LogsListResponseDto = z.infer<typeof LogsListResponseSchema>;

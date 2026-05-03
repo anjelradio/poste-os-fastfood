@@ -8,6 +8,7 @@ import CustomSelectForm from "@/features/shared/components/forms/CustomSelectFor
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import { CategoryType } from "@/lib/constants/category.constants";
 import { handleApiErrors } from "@/lib/api/errors";
+import { toProductsSearchQuery } from "@/features/products/data/mappers/product.mapper";
 import { useRouter } from "next/navigation";
 
 export default function ProductSearchForm() {
@@ -33,9 +34,7 @@ export default function ProductSearchForm() {
     const productName = (formData.get("productName") as string | null) ?? "";
     const category = (formData.get("category") as string | null) ?? "";
 
-    const params = new URLSearchParams();
-    if (productName) params.set("productName", productName);
-    if (category) params.set("category", category);
+    const params = toProductsSearchQuery({ productName, category });
     const query = params.toString();
     router.push(
       query

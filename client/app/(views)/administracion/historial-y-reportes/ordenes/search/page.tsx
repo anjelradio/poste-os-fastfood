@@ -13,7 +13,10 @@ export default async function OrdersResultPage({
   const orders = await getOrders({ date, status, type });
   return (
     <div className="flex-1 pb-10">
-      <SearchHeading />
+      <SearchHeading
+        labels={{ date: "Fecha", status: "Estado", type: "Tipo" }}
+        values={{ date, status, type }}
+      />
       <OrdersHistoryGrid orders={orders} />
     </div>
   );

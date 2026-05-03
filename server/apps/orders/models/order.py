@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 from apps.base.models import BaseModel
 
@@ -10,10 +11,12 @@ class Order(BaseModel):
         PENDING = "PENDING", "Pending"
         PREPARING = "PREPARING", "Preparing"
         READY = "READY", "Ready"
+        CANCELLED = "CANCELLED", "Cancelled"
 
     class OrderType(models.TextChoices):
         DINE_IN = "DINE_IN", "Dine In"
         TAKEAWAY = "TAKEAWAY", "Takeaway"
+        DELIVERY = "DELIVERY", "Delivery"
 
     # TODO: Define fields here
     order_number = models.PositiveIntegerField(
@@ -35,6 +38,14 @@ class Order(BaseModel):
         default=Status.PENDING,
     )
     ready_at = models.DateTimeField("Hora de orden lista", null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="orders",
+        verbose_name="Usuario",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         """Meta definition for Order."""

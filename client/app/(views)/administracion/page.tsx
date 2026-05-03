@@ -1,6 +1,13 @@
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import ActionLinkButton from "@/features/shared/components/ui/ActionLinkButton";
-import { DollarSign, Ticket, TrendingUp, Users } from "lucide-react";
+import {
+  DollarSign,
+  Package,
+  ShoppingBag,
+  Ticket,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
 export default function AdminPage() {
   return (
@@ -250,6 +257,101 @@ export default function AdminPage() {
             </div>
           </GradientCard>
         </div>
+      </div>
+      {/* INVENTARIO Y PROVEEDORES - Two Column Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        {/* INVENTARIO Y MATERIAS PRIMAS Card */}
+        <GradientCard
+          gradientId="inventario-material"
+          height={166}
+          contentClassName="p-6 flex flex-col"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="text-white text-xl font-bold mb-1">
+                INVENTARIO Y MATERIAS PRIMAS
+              </h3>
+              <p className="text-gray-300 text-sm">
+                Gestión de stock y materias primas.
+              </p>
+            </div>
+
+            <div
+              className="w-12 h-12 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-3"
+              style={{
+                borderRadius: "50%",
+                border: "2px solid transparent",
+                background:
+                  "linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)) padding-box, linear-gradient(to bottom, #fbbf24, #f97316, #ea580c) border-box",
+              }}
+            >
+              <Package
+                className="h-6 w-6 text-white"
+                strokeWidth={2.5}
+                fill="none"
+              />
+            </div>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Button */}
+          <div>
+            <ActionLinkButton
+              pageUrl="/administracion/inventario"
+              style={{ width: "45%", minWidth: "150px" }}
+            >
+              GESTIONAR INVENTARIO
+            </ActionLinkButton>
+          </div>
+        </GradientCard>
+        {/* COMPRAS Y PROVEEDORES Card */}
+        <GradientCard
+          gradientId="compras-proveedores"
+          height={166}
+          contentClassName="p-6 flex flex-col"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="text-white text-xl font-bold mb-1">
+                COMPRAS Y PROVEEDORES
+              </h3>
+              <p className="text-gray-300 text-sm">
+                Gestión de pedidos y proveedores.
+              </p>
+            </div>
+
+            <div
+              className="w-12 h-12 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-3"
+              style={{
+                borderRadius: "50%",
+                border: "2px solid transparent",
+                background:
+                  "linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)) padding-box, linear-gradient(to bottom, #fbbf24, #f97316, #ea580c) border-box",
+              }}
+            >
+              <ShoppingBag
+                className="h-6 w-6 text-white"
+                strokeWidth={2.5}
+                fill="none"
+              />
+            </div>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Button */}
+          <div>
+            <ActionLinkButton
+              pageUrl="/administracion/compras-y-proveedores"
+              style={{ width: "45%", minWidth: "150px" }}
+            >
+              GESTIONAR COMPRAS
+            </ActionLinkButton>
+          </div>
+        </GradientCard>
       </div>
     </div>
   );

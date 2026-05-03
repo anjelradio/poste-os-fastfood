@@ -9,12 +9,12 @@ import {
   requestForgotPasswordOtpAction,
   verifyForgotPasswordOtpAction,
 } from "@/features/authentication/presentation/actions/authentication/forgot-password-actions";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import CustomFieldedFormOtp from "@/features/shared/components/forms/CustomFieldedFormOtp";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import AppDialogModal from "@/features/shared/components/modals/AppDialogModal";
 import FormSubmitButton from "@/features/shared/components/submit/FormSubmitButton";
 import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
-import { handleApiErrors, handleZodErrors } from "@/lib/api/errors";
 
 type ForgotPasswordStep = "request" | "verify";
 
@@ -36,47 +36,43 @@ export default function ForgotPasswordDialog() {
   };
 
   const handleRequestOtp = async (formData: FormData) => {
-    const data = {
-      email: String(formData.get("email") ?? "").trim(),
-    };
+    const emailInput = String(formData.get("email") ?? "").trim();
 
-    const parsedData = ForgotPasswordRequestSchema.safeParse(data);
-    if (!parsedData.success) {
-      handleZodErrors(parsedData.error.issues);
-      return;
-    }
+    await submitWithSchema({
+      schema: ForgotPasswordRequestSchema,
+      payload: {
+        email: emailInput,
+      },
+      action: requestForgotPasswordOtpAction,
+      onSuccess: ({ data }) => {
+        if (!data) {
+          return;
+        }
 
-    const response = await requestForgotPasswordOtpAction(parsedData.data);
-    if (!response.ok) {
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    setEmail(parsedData.data.email);
-    setStep("verify");
-    showSuccessToast(response.data.message);
+        setEmail(emailInput);
+        setStep("verify");
+        showSuccessToast(data.message);
+      },
+    });
   };
 
   const handleVerifyOtp = async (formData: FormData) => {
-    const data = {
-      email,
-      otp: String(formData.get("otp") ?? "").trim(),
-    };
+    await submitWithSchema({
+      schema: ForgotPasswordVerifyOtpSchema,
+      payload: {
+        email,
+        otp: String(formData.get("otp") ?? "").trim(),
+      },
+      action: verifyForgotPasswordOtpAction,
+      onSuccess: ({ data }) => {
+        if (!data) {
+          return;
+        }
 
-    const parsedData = ForgotPasswordVerifyOtpSchema.safeParse(data);
-    if (!parsedData.success) {
-      handleZodErrors(parsedData.error.issues);
-      return;
-    }
-
-    const response = await verifyForgotPasswordOtpAction(parsedData.data);
-    if (!response.ok) {
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    showSuccessToast(response.data.message);
-    handleOpenChange(false);
+        showSuccessToast(data.message);
+        handleOpenChange(false);
+      },
+    });
   };
 
   const title =

@@ -1,4 +1,4 @@
-import { OrderList } from "@/lib/schemas/order.schema";
+import { OrderList } from "../../domain/entities/order-list-item";
 import OrderCard from "./OrderCard";
 
 type OrdersHistoryGridProps = {

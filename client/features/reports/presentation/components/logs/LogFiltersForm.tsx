@@ -6,34 +6,29 @@ import CustomSelectForm from "@/features/shared/components/forms/CustomSelectFor
 import SearchSubmitButton from "@/features/shared/components/submit/SearchSubmitButton";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import { SearchLogsSchema } from "@/features/reports/data/schemas/logs/logs-search-form";
-import { handleZodErrors } from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
+import { toLogsSearchQuery } from "@/features/reports/data/mappers/log.mapper";
 
 export default function LogFiltersForm() {
   const router = useRouter();
 
   const handleSearchForm = (formData: FormData) => {
-    const filters = {
-      area: String(formData.get("area") ?? ""),
-      date: String(formData.get("date") ?? ""),
-    };
-
-    const parsedData = SearchLogsSchema.safeParse(filters);
-    if (!parsedData.success) {
-      handleZodErrors(parsedData.error.issues);
-      return;
-    }
-
-    const params = new URLSearchParams();
-    if (parsedData.data.area) params.set("area", parsedData.data.area);
-    if (parsedData.data.date) params.set("date", parsedData.data.date);
-
-    const query = params.toString();
-
-    router.push(
-      query
-        ? `/administracion/historial-y-reportes/bitacora/search?${query}`
-        : "/administracion/historial-y-reportes/bitacora/",
-    );
+    void submitWithSchema({
+      schema: SearchLogsSchema,
+      payload: {
+        area: String(formData.get("area") ?? ""),
+        date: String(formData.get("date") ?? ""),
+      },
+      action: async (data) => ({ ok: true as const, data }),
+      onSuccess: ({ data }) => {
+        const query = toLogsSearchQuery(data).toString();
+        router.push(
+          query
+            ? `/administracion/historial-y-reportes/bitacora/search?${query}`
+            : "/administracion/historial-y-reportes/bitacora/",
+        );
+      },
+    });
   };
 
   return (

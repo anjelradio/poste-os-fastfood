@@ -3,12 +3,14 @@
 import { OrdersSearchSchema } from "@/lib/schemas/order.schema";
 import { useRouter } from "next/navigation";
 import {showErrorToast} from "@/features/shared/components/toast/ToastNotifications"
+import { useAppStore } from "@/lib/store/appStore";
 type OrderFiltersFormProps = {
   urlSearch: string;
 };
 
 export default function OrderFiltersForm({ urlSearch }: OrderFiltersFormProps) {
   const router = useRouter();
+  const { user } = useAppStore();
 
   const handleSearchForm = (formData: FormData) => {
     const filters = {
@@ -29,6 +31,7 @@ export default function OrderFiltersForm({ urlSearch }: OrderFiltersFormProps) {
     if (filters.date) params.set("date", String(filters.date));
     if (filters.status) params.set("status", String(filters.status));
     if (filters.type) params.set("type", String(filters.type));
+    if (user?.id) params.set("user_id", String(user.id));
     router.push(`${urlSearch}/search?${params.toString()}`);
   };
 
@@ -120,6 +123,7 @@ export default function OrderFiltersForm({ urlSearch }: OrderFiltersFormProps) {
                   <option value="PENDING">Pendiente</option>
                   <option value="PREPARING">Preparando</option>
                   <option value="READY">Entregados</option>
+                  <option value="CANCELLED">Cancelados</option>
                 </select>
               </div>
 
