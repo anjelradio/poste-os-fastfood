@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+!.env.example2
+!.env.local.example
+
+client/.env.local
+server/.env
+
+*.log
+*.sqlite3
+node_modules/
+.next/
+venv/
