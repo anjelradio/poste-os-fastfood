@@ -17,7 +17,7 @@ export default function CancelOrderButton({ order }: any) {
       return false;
     }
 
-    showSuccessToast(`Orden #${order.nro} cancelada correctamente`);
+    showSuccessToast(`Orden #${order.orderNumber} cancelada correctamente`);
     return true;
   }
 
@@ -42,13 +42,13 @@ export default function CancelOrderButton({ order }: any) {
       >
         <div className="rounded-xl border border-gray-700/60 bg-white/5 p-4 backdrop-blur-md">
           <p className="text-sm text-gray-300 mb-3">
-            ¿Seguro que deseas cancelar la orden <span className="font-semibold text-white">#{order.nro}</span>?
+            ¿Seguro que deseas cancelar la orden <span className="font-semibold text-white">#{order.orderNumber}</span>?
           </p>
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between gap-3">
               <span className="text-gray-400">Cliente:</span>
-              <span className="font-semibold text-white">{order.client}</span>
+              <span className="font-semibold text-white">{order.clientName}</span>
             </div>
             <div>
               <span className="text-gray-400 block mb-1">Contenido:</span>

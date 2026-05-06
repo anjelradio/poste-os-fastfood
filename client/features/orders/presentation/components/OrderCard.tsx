@@ -107,7 +107,7 @@ export default function OrderCard({ order }: OrderCardProps) {
     >
       {/* Order Number and Status Badge */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white text-xl font-bold">#{order.nro}</h3>
+        <h3 className="text-white text-xl font-bold">#{order.orderNumber}</h3>
         <div
           className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${orderStatusMeta.containerClass}`}
         >
@@ -123,7 +123,7 @@ export default function OrderCard({ order }: OrderCardProps) {
       {/* Customer Name */}
       <div className="mb-3">
         <p className="text-gray-400 text-xs font-semibold mb-1">Cliente</p>
-        <p className="text-white text-sm font-semibold">{order.client}</p>
+        <p className="text-white text-sm font-semibold">{order.clientName}</p>
       </div>
 
       {/* Order Items */}
@@ -162,7 +162,7 @@ export default function OrderCard({ order }: OrderCardProps) {
         </div>
       </div>
 
-      {/* orderReadyAt */}
+      {/* readyAt */}
       <div className="pt-3 mb-3 border-t border-gray-600/30 space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">
@@ -174,9 +174,9 @@ export default function OrderCard({ order }: OrderCardProps) {
           </span>
           {order.status === "CANCELLED" ? (
             <p className="text-red-400 text-xs font-bold">Orden cancelada</p>
-          ) : order.orderReadyAt ? (
+          ) : order.readyAt ? (
             <p className="text-green-400 text-xs font-bold">
-              {formatDateTime(order.orderReadyAt)}
+              {formatDateTime(order.readyAt)}
             </p>
           ) : (
             <p className="text-orange-400 text-xs font-bold italic">

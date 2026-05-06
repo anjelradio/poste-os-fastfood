@@ -22,12 +22,12 @@ export function toOrdersQueryParams(filters: OrdersFilters = {}) {
 export function toOrderListItemEntity(dto: OrderListItemResponseDto): OrderListItem {
   return {
     id: dto.id,
-    nro: dto.order_number,
-    client: dto.client_name,
+    orderNumber: dto.order_number,
+    clientName: dto.client_name,
     total: dto.total,
     type: dto.type,
     status: dto.status,
-    orderReadyAt: dto.ready_at,
+    readyAt: dto.ready_at,
     items: dto.items,
   };
 }

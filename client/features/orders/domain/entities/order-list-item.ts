@@ -9,12 +9,12 @@ export const OrderItemSchema = z.object({
 
 export const OrderListItemSchema = z.object({
   id: z.number(),
-  nro: z.number(),
-  client: z.string(),
+  orderNumber: z.number(),
+  clientName: z.string(),
   total: z.string().or(z.number()),
   type: z.string(),
   status: z.string(),
-  orderReadyAt: z.string().nullable(),
+  readyAt: z.string().nullable(),
   items: z.array(OrderItemSchema),
 });
 

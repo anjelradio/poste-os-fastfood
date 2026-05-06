@@ -40,11 +40,15 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
         order_status = request.query_params.get("status")
         order_type = request.query_params.get("type")
         user_id = request.query_params.get("user_id")
+        user_role = getattr(request.user, "role", None)
 
-        if getattr(request.user, "role", None) == "CAJA":
+        if user_role == "CAJA":
             queryset = queryset.filter(user=request.user)
         elif user_id:
             queryset = queryset.filter(user_id=user_id)
+
+        if user_role == "COCINA":
+            date = str(timezone.localdate())
 
         if date:
             queryset = queryset.filter(created_date=date)
