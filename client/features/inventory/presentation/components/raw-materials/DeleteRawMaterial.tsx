@@ -3,12 +3,37 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import AppAlertModal from "@/features/shared/components/modals/AppAlertModal";
-import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/features/shared/components/toast/ToastNotifications";
+import { deleteRawMaterialAction } from "../../actions/raw-material-actions";
 
-export default function DeleteRawMaterial({ rawMaterial, className, showLabel = false }: any) {
+type RawMaterialToDelete = {
+  id: number;
+  name: string;
+  stock: string;
+};
+
+export default function DeleteRawMaterial({
+  rawMaterial,
+  className,
+  showLabel = false,
+}: {
+  rawMaterial: RawMaterialToDelete;
+  className?: string;
+  showLabel?: boolean;
+}) {
   const [open, setOpen] = useState(false);
+  const formattedStock = Number(rawMaterial.stock).toFixed(2);
 
   async function handleConfirmDelete() {
+    const response = await deleteRawMaterialAction(rawMaterial.id);
+    if (!response.ok) {
+      showErrorToast(response.errors?.[0] ?? "Error al eliminar la materia prima");
+      return false;
+    }
+
     showSuccessToast("Materia prima eliminada correctamente");
     return true;
   }
@@ -43,7 +68,7 @@ export default function DeleteRawMaterial({ rawMaterial, className, showLabel = 
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-sm text-gray-400">Stock:</span>
-              <span className="font-semibold text-orange-400">{rawMaterial.stock}</span>
+              <span className="font-semibold text-orange-400">{formattedStock}</span>
             </div>
           </div>
         </div>

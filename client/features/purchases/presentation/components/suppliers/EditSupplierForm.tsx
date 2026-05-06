@@ -17,7 +17,7 @@ export default function EditSupplierForm({ children }: any) {
 
   return (
     <GradientFormCard gradientId="edit-supplier-form" title="Editar Proveedor">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form action={()=>{}} className="space-y-6">
         {children}
         <div className="pt-4">
           <FormSubmitButton pendingText="Guardando...">Editar</FormSubmitButton>

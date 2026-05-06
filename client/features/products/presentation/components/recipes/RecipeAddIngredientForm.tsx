@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { inventoryRepository } from "@/features/inventory/data/repositories/inventory.repository";
 import type { MeasureUnit } from "@/features/inventory/domain/entities/measure-unit";
 import type { RawMaterial } from "@/features/inventory/domain/entities/raw-material";
+import {
+  getMeasureUnitsAction,
+  getRawMaterialsAction,
+} from "@/features/inventory/presentation/actions/inventory-actions";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import CustomSelectForm from "@/features/shared/components/forms/CustomSelectForm";
 import AddItemSubmitButton from "@/features/shared/components/submit/AddItemSubmitButton";
@@ -19,8 +22,8 @@ export default function RecipeAddIngredientForm({
   useEffect(() => {
     const loadInventoryData = async () => {
       const [rawMaterialsResponse, measureUnitsResponse] = await Promise.all([
-        inventoryRepository.getRawMaterials(),
-        inventoryRepository.getMeasureUnits(),
+        getRawMaterialsAction(),
+        getMeasureUnitsAction(),
       ]);
 
       if (!rawMaterialsResponse.ok) {

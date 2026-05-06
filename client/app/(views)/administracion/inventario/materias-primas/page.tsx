@@ -2,10 +2,17 @@
 import CustomLinkButton from "@/features/shared/components/ui/CustomLinkButton";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
-import RawMaterialFiltersForm from "@/features/inventory/presentation/components/raw-materials/RawMaterialFiltersForm";
 import RawMaterialListCard from "@/features/inventory/presentation/components/raw-materials/RawMaterialListCard";
+import { inventoryRepository } from "@/features/inventory/data/repositories/inventory.repository";
 
-export default function RawMaterailPage() {
+export default async function RawMaterailPage() {
+  const response = await inventoryRepository.getRawMaterials();
+  if (!response.ok) {
+    throw new Error(response.errors[0] ?? "Error al obtener las materias primas.");
+  }
+
+  const rawMaterials = response.data;
+
   return (
     <div className="flex-1 pb-10">
       <ReturnHeading
@@ -17,8 +24,6 @@ export default function RawMaterailPage() {
         pageUrl="/administracion/inventario/materias-primas/agregar"
         label="REGISTRAR MATERIA PRIMA"
       />
-
-      <RawMaterialFiltersForm />
 
       <GradientCard
         gradientId="raw-materials-table"
@@ -38,9 +43,9 @@ export default function RawMaterailPage() {
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: "420px" }}>
-          <RawMaterialListCard />
-          <RawMaterialListCard />
-          <RawMaterialListCard />
+          {rawMaterials.map((rawMaterial) => (
+            <RawMaterialListCard key={rawMaterial.id} rawMaterial={rawMaterial} />
+          ))}
         </div>
       </GradientCard>
     </div>

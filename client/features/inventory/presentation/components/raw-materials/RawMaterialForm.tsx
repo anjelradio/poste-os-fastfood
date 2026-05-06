@@ -1,7 +1,33 @@
+import { categoriesRepository } from "@/features/products/data/repositories/categories.repository";
+import type { RawMaterial } from "@/features/inventory/domain/entities/raw-material";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import CustomSelectForm from "@/features/shared/components/forms/CustomSelectForm";
+import { inventoryRepository } from "@/features/inventory/data/repositories/inventory.repository";
+import { CategoryType } from "@/lib/constants/category.constants";
 
-export default function RawMaterialForm({ rawMaterial }: any) {
+type RawMaterialFormProps = {
+  rawMaterial?: RawMaterial;
+};
+
+export default async function RawMaterialForm({ rawMaterial }: RawMaterialFormProps) {
+  const [measureUnitsResponse, categoriesResponse] = await Promise.all([
+    inventoryRepository.getMeasureUnits(),
+    categoriesRepository.getCategories(CategoryType.RAW_MATERIAL),
+  ]);
+
+  if (!measureUnitsResponse.ok) {
+    throw new Error(
+      measureUnitsResponse.errors[0] ?? "Error al obtener las unidades de medida.",
+    );
+  }
+
+  if (!categoriesResponse.ok) {
+    throw new Error(categoriesResponse.errors[0] ?? "Error al obtener las categorias.");
+  }
+
+  const measureUnits = measureUnitsResponse.data;
+  const categories = categoriesResponse.data;
+
   return (
     <div className="space-y-6">
       <CustomFieldedFormText
@@ -34,40 +60,32 @@ export default function RawMaterialForm({ rawMaterial }: any) {
         name="measureUnit"
         label="Unidad de medida"
         className="text-gray-400"
-        defaultValue={rawMaterial?.measureUnit}
+        defaultValue={rawMaterial?.measureUnit.id}
       >
         <option value="" className="bg-gray-800">
           Seleccionar unidad
         </option>
-        <option value="kg" className="bg-gray-800">
-          Kilogramo
-        </option>
-        <option value="g" className="bg-gray-800">
-          Gramo
-        </option>
-        <option value="unit" className="bg-gray-800">
-          Unidad
-        </option>
+        {measureUnits.map((measureUnit) => (
+          <option key={measureUnit.id} value={measureUnit.id} className="bg-gray-800">
+            {measureUnit.name} ({measureUnit.code})
+          </option>
+        ))}
       </CustomSelectForm>
 
       <CustomSelectForm
         name="category"
         label="Categoría"
         className="text-gray-400"
-        defaultValue={rawMaterial?.category}
+        defaultValue={rawMaterial?.category.id}
       >
         <option value="" className="bg-gray-800">
           Seleccionar categoría
         </option>
-        <option value="carnes" className="bg-gray-800">
-          Carnes
-        </option>
-        <option value="panaderia" className="bg-gray-800">
-          Panadería
-        </option>
-        <option value="insumos" className="bg-gray-800">
-          Insumos
-        </option>
+        {categories.map((category) => (
+          <option key={category.id} value={category.id} className="bg-gray-800">
+            {category.name}
+          </option>
+        ))}
       </CustomSelectForm>
     </div>
   );
