@@ -1,11 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
 import GradientFormCard from "@/features/shared/components/ui/GradientFormCard";
 import FormSubmitButton from "@/features/shared/components/submit/FormSubmitButton";
@@ -22,36 +18,23 @@ export default function EditUserForm({
   const id = +params.id!;
 
   const handleSubmit = async (formData: FormData) => {
-    const data = {
-      username: formData.get("username"),
-      name: formData.get("name"),
-      last_name: formData.get("last_name"),
-      email: formData.get("email"),
-      role: formData.get("role"),
-      password: formData.get("password"),
-    };
-
-    const result = UpdateUserRequestSchema.safeParse(data);
-    if (!result.success) {
-      handleZodErrors(result.error.issues);
-      return;
-    }
-
-    const response = await updateUserAction(id, result.data);
-
-    if (response.ok) {
-      showSuccessToast("Usuario actualizado correctamente");
-      router.push("/administracion/usuarios");
-      router.refresh();
-      return;
-    }
-
-    if (response.validationErrors) {
-      handleValidationErrors(response.validationErrors);
-      return;
-    }
-
-    handleApiErrors(response.errors);
+    await submitWithSchema({
+      schema: UpdateUserRequestSchema,
+      payload: {
+        username: formData.get("username"),
+        name: formData.get("name"),
+        lastName: formData.get("lastName"),
+        email: formData.get("email"),
+        role: formData.get("role"),
+        password: formData.get("password"),
+      },
+      action: async (data) => updateUserAction(id, data),
+      onSuccess: () => {
+        showSuccessToast("Usuario actualizado correctamente");
+        router.push("/administracion/usuarios");
+        router.refresh();
+      },
+    });
   };
 
   return (

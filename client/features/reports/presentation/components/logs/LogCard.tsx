@@ -69,7 +69,7 @@ export default function LogCard({ log }: LogCardProps) {
         style={{ background: "transparent" }}
       >
         <div className="text-gray-200 text-sm">
-          {formatDateTime(log.created_date, log.time)}
+          {formatDateTime(log.createdDate, log.time)}
         </div>
         <div className={`font-semibold text-sm ${getSectorColor(log.area)}`}>
           {log.area}
@@ -81,7 +81,7 @@ export default function LogCard({ log }: LogCardProps) {
             {getActionText(log.action)}
           </span>
         </div>
-        <div className="text-gray-300 text-sm">{log.ip_address ?? "-"}</div>
+        <div className="text-gray-300 text-sm">{log.ipAddress ?? "-"}</div>
         <div className="text-gray-300 text-sm col-span-2">
           {log.description}
         </div>
@@ -94,9 +94,9 @@ export default function LogCard({ log }: LogCardProps) {
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs">
-              {formatDateTime(log.created_date, log.time)}
-            </span>
+              <span className="text-gray-400 text-xs">
+              {formatDateTime(log.createdDate, log.time)}
+              </span>
             <span
               className={`text-xs font-semibold ${getSectorColor(log.area)}`}
             >
@@ -104,7 +104,7 @@ export default function LogCard({ log }: LogCardProps) {
             </span>
           </div>
           <div className="text-gray-200 font-semibold">{log.user}</div>
-          <div className="text-gray-300 text-xs">IP: {log.ip_address ?? "-"}</div>
+          <div className="text-gray-300 text-xs">IP: {log.ipAddress ?? "-"}</div>
           <div className="flex items-center gap-2">
             {getActionIcon(log.action)}
             <span className="text-gray-200 text-sm font-medium">

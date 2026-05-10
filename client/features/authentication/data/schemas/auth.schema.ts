@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { UserSchema } from "../../domain/entities/user";
 
 export const TokensSchema = z.object({
   access: z.string(),
@@ -26,9 +25,19 @@ export const MessageResponseSchema = z.object({
   message: z.string(),
 });
 
-export const LoginResponseSchema = z.object({
-  tokens: TokensSchema,
-  user: UserSchema,
+export const AuthUserResponseSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  email: z.string(),
+  name: z.string(),
+  last_name: z.string(),
+  role: z.enum(["CAJA", "COCINA", "ADMIN"]),
 });
 
-export type LoginResponseData = z.infer<typeof LoginResponseSchema>;
+export const LoginResponseSchema = z.object({
+  tokens: TokensSchema,
+  user: AuthUserResponseSchema,
+});
+
+export type AuthUserResponseDto = z.infer<typeof AuthUserResponseSchema>;
+export type LoginResponseDto = z.infer<typeof LoginResponseSchema>;

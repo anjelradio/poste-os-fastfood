@@ -1,7 +1,7 @@
 "use client";
 
 import type { Product } from "@/features/products/domain/entities/product";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/appStore";
 import Image from "next/image";
 
 type ProductCardProps = {
@@ -9,10 +9,10 @@ type ProductCardProps = {
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addToOrder } = useAppStore();
+    const { addOrderItem } = useAppStore();
 
   return (
-    <div className="relative group" onClick={() => addToOrder(product)}>
+        <div className="relative group" onClick={() => addOrderItem(product)}>
       <div className="absolute inset-0 rounded-xl bg-linear-to-b from-yellow-400/20 to-orange-500/20 opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
 
       <div

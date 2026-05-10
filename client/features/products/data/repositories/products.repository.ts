@@ -1,10 +1,11 @@
 import { productsApi } from "../api/products-api";
+import type { ProductsFilters } from "../mappers/product.mapper";
 
 export const productsRepository = {
   getProducts(
     page: number,
     pageSize: number,
-    filters?: { productName: string; category: string },
+    filters?: ProductsFilters,
   ) {
     return productsApi.getProducts(page, pageSize, filters);
   },

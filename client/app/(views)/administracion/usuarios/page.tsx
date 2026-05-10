@@ -16,7 +16,7 @@ export default async function UsersPage() {
 
   return (
     <div className="flex-1 pb-10">
-      <ReturnHeading titlePage="Gestión de Usuarios" />
+      <ReturnHeading titlePage="Gestión de Usuarios" backHref="/administracion" />
       <CustomLinkButton
         pageUrl="/administracion/usuarios/agregar"
         label="REGISTRAR USUARIO"

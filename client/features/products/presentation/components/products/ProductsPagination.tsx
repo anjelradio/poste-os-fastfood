@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { toProductsSearchQuery } from "@/features/products/data/mappers/product.mapper";
 
 type ProductsPaginationProps = {
     page: number;
@@ -14,15 +15,8 @@ function getProductsPageHref(
     page: number,
     filters?: { productName?: string; category?: string },
 ) {
-    const params = new URLSearchParams({ page: page.toString() });
-
-    if (filters?.productName) {
-        params.set("productName", filters.productName);
-    }
-
-    if (filters?.category) {
-        params.set("category", filters.category);
-    }
+    const params = toProductsSearchQuery(filters);
+    params.set("page", page.toString());
 
     return `/administracion/productos?${params.toString()}`;
 }

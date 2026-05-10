@@ -20,7 +20,11 @@ export default async function EditUserPage({
 
   return (
     <div className="flex-1 pb-10">
-      <Breadcrumb parent="Gestión de Usuarios" child={`Editar ${user.username}`} />
+      <Breadcrumb
+        parent="Gestión de Usuarios"
+        child={`Editar ${user.username}`}
+        backHref="/administracion/usuarios"
+      />
       <EditUserForm>
         <UserForm user={user} />
       </EditUserForm>

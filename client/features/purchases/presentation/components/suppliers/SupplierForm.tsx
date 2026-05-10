@@ -1,11 +1,7 @@
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import type { Supplier } from "@/features/purchases/domain/entities/supplier";
 
-type SupplierFormProps = {
-  supplier?: Supplier;
-};
-
-export default function SupplierForm({ supplier }: SupplierFormProps) {
+export default function SupplierForm({ supplier }: { supplier?: Supplier }) {
   return (
     <div className="space-y-6">
       <CustomFieldedFormText

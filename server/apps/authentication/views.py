@@ -387,6 +387,31 @@ class ChangeEmailConfirmView(ErrorResponseMixin, APIView):
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 
+class LogoutView(ErrorResponseMixin, APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Logout",
+        operation_description="Registra cierre de sesión en bitácora para el usuario autenticado.",
+        request_body=None,
+        responses={
+            200: "Logout registrado correctamente",
+        },
+    )
+    def post(self, request):
+        create_logbook(
+            request,
+            Logbook.ActionChoices.LOGOUT,
+            f"Usuario {request.user.username} cerró sesión",
+            user=request.user,
+        )
+
+        return Response(
+            {"message": "Logout registrado correctamente."},
+            status=status.HTTP_200_OK,
+        )
+
+
 class ChangePasswordView(ErrorResponseMixin, APIView):
     permission_classes = [IsAuthenticated]
 

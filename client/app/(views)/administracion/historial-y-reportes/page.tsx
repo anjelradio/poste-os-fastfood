@@ -8,7 +8,10 @@ import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
 export default function HistoricalReportPage() {
   return (
     <>
-      <ReturnHeading titlePage="Historial y Reportes"/>
+      <ReturnHeading
+        titlePage="Inventario y Materias Primas"
+        backHref="/administracion"
+      />
       {/* Cards Grid - 2 columns layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Column - Reporte de Ganancias (Full Height) */}

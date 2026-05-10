@@ -29,13 +29,13 @@ class LogBookViewSet(GenericViewSet):
         total = queryset.count()
 
         page = int(request.query_params.get("page", 1))
-        page_size = int(request.query_params.get("pageSize", 8))
+        page_size = int(request.query_params.get("page_size", 8))
         skip = (page - 1) * page_size
 
         logs = queryset[skip : skip + page_size]
         log_serializer = self.serializer_class(logs, many=True)
 
         return Response(
-            {"data": log_serializer.data, "totalLogs": total},
+            {"data": log_serializer.data, "total_logs": total},
             status=status.HTTP_200_OK,
         )

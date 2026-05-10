@@ -3,11 +3,15 @@ import CustomLinkButton from "@/features/shared/components/ui/CustomLinkButton";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
 import SupplierListCard from "@/features/purchases/presentation/components/suppliers/SupplierListCard";
-import { getSuppliersAction } from "@/features/purchases/presentation/actions/supplier-actions";
+import { suppliersRepository } from "@/features/purchases/data/repositories/suppliers.repository";
 
 export default async function SuppliersPage() {
-  const response = await getSuppliersAction();
-  const suppliers = response.ok ? response.data : [];
+  const response = await suppliersRepository.getSuppliers();
+  if (!response.ok) {
+    throw new Error(response.errors[0] ?? "Error al obtener los proveedores.");
+  }
+
+  const suppliers = response.data;
 
   return (
     <div className="flex-1 pb-10">
@@ -42,11 +46,6 @@ export default async function SuppliersPage() {
           {suppliers.map((supplier) => (
             <SupplierListCard key={supplier.id} supplier={supplier} />
           ))}
-          {suppliers.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-400">
-              No hay proveedores registrados.
-            </div>
-          ) : null}
         </div>
       </GradientCard>
     </div>

@@ -1,120 +1,72 @@
 import { env } from "@/lib/config/env";
 import {
-  errorResult,
-  serverErrorResult,
-  zodValidationErrorResult,
-} from "@/features/shared/data/infrastructure/api-error-result";
+  apiRequestJson,
+} from "@/features/shared/data/infrastructure/api/api-client";
+import { parseWithSchema } from "@/features/shared/data/infrastructure/api/parse-with-schema";
 import type { ApiResult } from "@/features/shared/data/types/api-result";
+import type { AuthResult } from "../types/auth.types";
 import {
   ForgotPasswordRequestSchema,
   ForgotPasswordVerifyOtpSchema,
   LoginFormSchema,
   LoginResponseSchema,
   MessageResponseSchema,
-  type LoginResponseData,
 } from "../schemas/auth.schema";
+import { toAuthSessionEntity } from "../mappers/auth/auth-session.mapper";
+import { toMessageEntity } from "../mappers/auth/message.mapper";
+
+const BASE_URL = `${env.API_URL}/auth`
 
 export const authApi = {
-  async login(data: unknown): Promise<ApiResult<LoginResponseData>> {
-    const parsedData = LoginFormSchema.safeParse(data);
-    if (!parsedData.success) {
-      return zodValidationErrorResult(parsedData.error);
+  async login(data: unknown): Promise<AuthResult> {
+    const input = parseWithSchema(LoginFormSchema, data);
+    if (!input.ok) {
+      return input;
     }
-
-    try {
-      const res = await fetch(`${env.API_URL}/auth/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedData.data),
-      });
-
-      if (!res.ok) {
-        return serverErrorResult(res, "Error al iniciar sesión.");
-      }
-
-      const responseData = await res.json();
-      const parsedResult = LoginResponseSchema.safeParse(responseData);
-      if (!parsedResult.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsedResult.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestJson({
+      url: `${BASE_URL}/login/`,
+      method: "POST",
+      body: input.data,
+      fallbackMessage: "Error al iniciar sesión.",
+      responseSchema: LoginResponseSchema,
+      mapData: toAuthSessionEntity,
+    });
   },
 
   async requestForgotPasswordOtp(
     data: unknown,
   ): Promise<ApiResult<{ message: string }>> {
-    const parsedData = ForgotPasswordRequestSchema.safeParse(data);
-    if (!parsedData.success) {
-      return zodValidationErrorResult(parsedData.error);
+    const input = parseWithSchema(ForgotPasswordRequestSchema, data);
+    if (!input.ok) {
+      return input;
     }
 
-    try {
-      const res = await fetch(`${env.API_URL}/auth/forgot-password/request-otp/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedData.data),
-      });
-
-      if (!res.ok) {
-        return serverErrorResult(res, "No se pudo enviar el código OTP.");
-      }
-
-      const responseData = await res.json();
-      const parsedResult = MessageResponseSchema.safeParse(responseData);
-      if (!parsedResult.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsedResult.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestJson({
+      url: `${BASE_URL}/forgot-password/request-otp/`,
+      method: "POST",
+      body: input.data,
+      fallbackMessage: "No se pudo enviar el código OTP.",
+      responseSchema: MessageResponseSchema,
+      mapData: toMessageEntity,
+    });
   },
 
   async verifyForgotPasswordOtp(
     data: unknown,
   ): Promise<ApiResult<{ message: string }>> {
-    const parsedData = ForgotPasswordVerifyOtpSchema.safeParse(data);
-    if (!parsedData.success) {
-      return zodValidationErrorResult(parsedData.error);
+    const input = parseWithSchema(ForgotPasswordVerifyOtpSchema, data);
+    if (!input.ok) {
+      return input;
     }
 
-    try {
-      const res = await fetch(`${env.API_URL}/auth/forgot-password/verify-otp/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedData.data),
-      });
-
-      if (!res.ok) {
-        return serverErrorResult(
-          res,
-          "No se pudo verificar el código OTP para restablecer la contraseña.",
-        );
-      }
-
-      const responseData = await res.json();
-      const parsedResult = MessageResponseSchema.safeParse(responseData);
-      if (!parsedResult.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsedResult.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestJson({
+      url: `${BASE_URL}/forgot-password/verify-otp/`,
+      method: "POST",
+      body: input.data,
+      fallbackMessage:
+        "No se pudo verificar el código OTP para restablecer la contraseña.",
+      responseSchema: MessageResponseSchema,
+      mapData: toMessageEntity,
+    });
   },
 };

@@ -10,7 +10,7 @@ import { logsRepository } from "@/features/reports/data/repositories/logs.reposi
 export default async function BitacoraPage({
   searchParams,
 }: {
-  searchParams: { page: string; area: string; date: string };
+  searchParams: Promise<{ page?: string; area?: string; date?: string }>;
 }) {
   const pageQuery = await searchParams;
   const page = +(pageQuery.page ?? "1");
@@ -37,7 +37,11 @@ export default async function BitacoraPage({
     redirect("/administracion/historial-y-reportes/bitacora");
   return (
     <div className="flex-1 pb-10">
-      <Breadcrumb parent="Historial y Reportes" child="Bitácora del Sistema" />
+      <Breadcrumb
+        parent="Historial y Reportes"
+        child="Bitácora del Sistema"
+        backHref="/administracion/historial-y-reportes"
+      />
 
       {/* Filters Card */}
       <LogFiltersForm />
@@ -71,7 +75,7 @@ export default async function BitacoraPage({
           ))}
         </div>
       </GradientCard>
-      <LogsPagination page={page} totalPages={totalPages} />
+      <LogsPagination page={page} totalPages={totalPages} filters={filters} />
     </div>
   );
 }

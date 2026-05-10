@@ -3,39 +3,38 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import AppAlertModal from "@/features/shared/components/modals/AppAlertModal";
-import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
-import { handleApiErrors } from "@/lib/api/errors";
-import type { Supplier } from "@/features/purchases/domain/entities/supplier";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/features/shared/components/toast/ToastNotifications";
 import { deleteSupplierAction } from "../../actions/supplier-actions";
 
-type DeleteSupplierProps = {
-  supplier: Supplier;
-  className?: string;
-  showLabel?: boolean;
+type SupplierToDelete = {
+  id: number;
+  businessName: string;
+  contactName: string;
 };
 
 export default function DeleteSupplier({
   supplier,
   className,
   showLabel = false,
-}: DeleteSupplierProps) {
+}: {
+  supplier: SupplierToDelete;
+  className?: string;
+  showLabel?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   async function handleConfirmDelete() {
-    const result = await deleteSupplierAction(supplier.id);
-
-    if (result.ok) {
-      showSuccessToast("Proveedor eliminado correctamente");
-      return true;
+    const response = await deleteSupplierAction(supplier.id);
+    if (!response.ok) {
+      showErrorToast(response.errors?.[0] ?? "Error al eliminar el proveedor");
+      return false;
     }
 
-    handleApiErrors(
-      result.errors.length > 0
-        ? result.errors
-        : ["Error al eliminar el proveedor."],
-    );
-
-    return false;
+    showSuccessToast("Proveedor eliminado correctamente");
+    return true;
   }
 
   return (

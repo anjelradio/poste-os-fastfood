@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { productsRepository } from "../../data/repositories/products.repository";
+import type { ProductsFilters } from "../../data/mappers/product.mapper";
 
 export async function getProductsAction(
   page: number,
   pageSize: number,
-  filters?: { productName: string; category: string },
+  filters?: ProductsFilters,
 ) {
   return productsRepository.getProducts(page, pageSize, filters);
 }

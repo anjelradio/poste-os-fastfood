@@ -1,10 +1,15 @@
 import OrderCard from "@/features/orders/presentation/components/OrderCard";
+import { getOrdersAction } from "@/features/orders/presentation/actions/orders-list-actions";
 import Heading from "@/features/shared/components/ui/Heading";
-import { getOrders } from "@/lib/api/orders";
 
 export default async function OrdersPage() {
     const today = new Date().toLocaleDateString("en-CA");
-    const orders = await getOrders({ date: today, status: "NOT_READY" });
+    const response = await getOrdersAction({ date: today, status: "NOT_READY" });
+    if (!response.ok) {
+        throw new Error(response.errors[0] ?? "Error al obtener las órdenes.");
+    }
+
+    const orders = response.data;
     return (
         <>
             <div className="mb-6">

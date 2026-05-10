@@ -1,6 +1,5 @@
 "use client"
 import { useAppStore } from "@/lib/store/appStore";
-import { ChangeInfoModal } from "../perfil/ChangeInfoModal";
 
 export const ModalManager = () => {
   const { modal, closeModal } = useAppStore();
@@ -9,7 +8,7 @@ export const ModalManager = () => {
 
   return (
     <>
-      {modal === "editProfile" && <ChangeInfoModal />}
+      {modal === "editProfile" && null}
     </>
   );
 };

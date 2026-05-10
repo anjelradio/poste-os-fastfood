@@ -1,4 +1,4 @@
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/appStore";
 import { OrderItem } from "@/lib/types";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -9,7 +9,11 @@ type ProductDetailsProps = {
 };
 
 export default function ProductDetails({ item }: ProductDetailsProps) {
-  const { increaseQuantity, decreaseQuantity, removeItem } = useAppStore();
+  const {
+    increaseOrderItemQuantity,
+    decreaseOrderItemQuantity,
+    removeOrderItem,
+  } = useAppStore();
   const disabledDecreaseButton = useMemo(() => item.quantity === 1, [item]);
   return (
     <>
@@ -47,7 +51,7 @@ export default function ProductDetails({ item }: ProductDetailsProps) {
           {/* Decrease button - grayish with better contrast */}
           <button
             className="w-7 h-7 rounded-full border-2 border-gray-400/70 flex items-center justify-center transition-all hover:border-gray-300 hover:bg-gray-600/40 cursor-pointer disabled:opacity-20"
-            onClick={() => decreaseQuantity(item.id)}
+            onClick={() => decreaseOrderItemQuantity(item.id)}
             disabled={disabledDecreaseButton}
           >
             <Minus className="h-4 w-4 text-gray-200" strokeWidth={3} />
@@ -61,7 +65,7 @@ export default function ProductDetails({ item }: ProductDetailsProps) {
           {/* Increase button - orange gradient with better contrast */}
           <button
             className="w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all hover:shadow-[0_0_15px_rgba(251,146,60,0.6)] cursor-pointer"
-            onClick={() => increaseQuantity(item.id)}
+            onClick={() => increaseOrderItemQuantity(item.id)}
             style={{
               borderImage:
                 "linear-gradient(to bottom, #fbbf24, #f97316, #ea580c) 1",
@@ -76,7 +80,7 @@ export default function ProductDetails({ item }: ProductDetailsProps) {
 
           {/* Delete button with better contrast */}
           <button className="w-7 h-7 rounded-full flex items-center justify-center transition-all hover:bg-red-500/30 cursor-pointer"
-          onClick={() => removeItem(item.id)}>
+          onClick={() => removeOrderItem(item.id)}>
             <Trash2 className="h-4 w-4 text-red-400" strokeWidth={2.5} />
           </button>
         </div>

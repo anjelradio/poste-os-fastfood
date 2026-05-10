@@ -15,11 +15,8 @@ import {
   ChangeEmailConfirmRequestSchema,
   ChangeEmailVerifyOtpRequestSchema,
 } from "@/features/users/data/schemas/change-email-request.schema";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
+import { handleApiResultError } from "@/features/shared/data/infrastructure/errors/handle-form-errors";
 import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
 import { useAppStore } from "@/lib/store/appStore";
 
@@ -47,7 +44,7 @@ export default function EditEmailButton() {
     const response = await requestChangeEmailOtpAction();
 
     if (!response.ok) {
-      handleApiErrors(response.errors);
+      handleApiResultError(response);
       return;
     }
 
@@ -56,60 +53,42 @@ export default function EditEmailButton() {
   };
 
   const handleVerifyOtp = async (formData: FormData) => {
-    const data = {
-      otp: formData.get("otp"),
-    };
+    await submitWithSchema({
+      schema: ChangeEmailVerifyOtpRequestSchema,
+      payload: {
+        otp: formData.get("otp"),
+      },
+      action: verifyChangeEmailOtpAction,
+      onSuccess: ({ data }) => {
+        if (!data) {
+          return;
+        }
 
-    const parsedData = ChangeEmailVerifyOtpRequestSchema.safeParse(data);
-    if (!parsedData.success) {
-      handleZodErrors(parsedData.error.issues);
-      return;
-    }
-
-    const response = await verifyChangeEmailOtpAction(parsedData.data);
-
-    if (!response.ok) {
-      if (response.validationErrors) {
-        handleValidationErrors(response.validationErrors);
-        return;
-      }
-
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    setVerificationToken(response.data.verification_token);
-    showSuccessToast(response.data.message);
-    setStep("new-email");
+        setVerificationToken(data.verificationToken);
+        showSuccessToast(data.message);
+        setStep("new-email");
+      },
+    });
   };
 
   const handleConfirmChangeEmail = async (formData: FormData) => {
-    const data = {
-      verification_token: verificationToken,
-      new_email: formData.get("new_email"),
-    };
+    await submitWithSchema({
+      schema: ChangeEmailConfirmRequestSchema,
+      payload: {
+        verificationToken,
+        newEmail: formData.get("newEmail"),
+      },
+      action: confirmChangeEmailAction,
+      onSuccess: ({ data }) => {
+        if (!data) {
+          return;
+        }
 
-    const parsedData = ChangeEmailConfirmRequestSchema.safeParse(data);
-    if (!parsedData.success) {
-      handleZodErrors(parsedData.error.issues);
-      return;
-    }
-
-    const response = await confirmChangeEmailAction(parsedData.data);
-
-    if (!response.ok) {
-      if (response.validationErrors) {
-        handleValidationErrors(response.validationErrors);
-        return;
-      }
-
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    setUser(response.data);
-    showSuccessToast("Correo electrónico actualizado correctamente");
-    handleOpenChange(false);
+        setUser(data);
+        showSuccessToast("Correo electrónico actualizado correctamente");
+        handleOpenChange(false);
+      },
+    });
   };
 
   const subtitleByStep = {
@@ -197,7 +176,7 @@ export default function EditEmailButton() {
           <form action={handleConfirmChangeEmail} className="space-y-6">
             <CustomFieldedFormText
               type="email"
-              name="new_email"
+              name="newEmail"
               label="Nuevo Correo Electrónico"
               placeholder="nuevo-correo@ejemplo.com"
             />

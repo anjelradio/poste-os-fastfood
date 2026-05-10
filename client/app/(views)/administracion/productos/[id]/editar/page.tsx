@@ -24,6 +24,7 @@ export default async function EditProductPage({
             <Breadcrumb
                 parent="Gestión del Catálogo"
                 child={`Editar ${product.name}`}
+                backHref="/administracion/productos"
             />
             <EditProductForm>
                 <ProductForm product={product} />

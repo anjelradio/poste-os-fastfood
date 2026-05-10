@@ -50,11 +50,25 @@ class ProductViewSet(ErrorResponseMixin, ModelViewSet):
     def generate_slug(self, name):
         return slugify(name or "")
 
+    def parse_bool_query_param(self, value):
+        if value is None:
+            return None
+
+        normalized = value.strip().lower()
+        if normalized in ("true", "1", "yes", "si", "sí"):
+            return True
+        if normalized in ("false", "0", "no"):
+            return False
+
+        return None
+
     def list(self, request):
         queryset = self.get_queryset()
 
-        product_name = request.query_params.get("productName", "")
+        product_name = request.query_params.get("product_name", "")
         category = request.query_params.get("category", "")
+        slug = request.query_params.get("slug", "")
+        has_recipe = self.parse_bool_query_param(request.query_params.get("has_recipe"))
 
         if product_name:
             queryset = queryset.filter(name__icontains=product_name)
@@ -62,10 +76,16 @@ class ProductViewSet(ErrorResponseMixin, ModelViewSet):
         if category:
             queryset = queryset.filter(category__name__icontains=category)
 
+        if slug:
+            queryset = queryset.filter(slug=slug)
+
+        if has_recipe is not None:
+            queryset = queryset.filter(has_recipe=has_recipe)
+
         total = queryset.count()
 
         page = int(request.query_params.get("page", 1))
-        page_size = int(request.query_params.get("pageSize", 8))
+        page_size = int(request.query_params.get("page_size", 8))
         skip = (page - 1) * page_size
 
         products = queryset[skip : skip + page_size]

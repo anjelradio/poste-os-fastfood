@@ -6,10 +6,10 @@ import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 export default async function SearchProductPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productName?: string; category?: string }>;
+  searchParams: Promise<{ product_name?: string; category?: string }>;
 }) {
   const params = await searchParams;
-  const productName = params.productName || "";
+  const productName = params.product_name || "";
   const category = params.category || "";
 
   const response = await productsRepository.getProducts(1, 100, {

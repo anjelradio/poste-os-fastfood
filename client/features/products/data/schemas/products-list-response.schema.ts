@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ProductSchema } from "../../domain/entities/product";
+import { ProductResponseDtoSchema } from "./product-response.schema";
 
 export const ProductsListResponseSchema = z.object({
-  products: z.array(ProductSchema),
+  products: z.array(ProductResponseDtoSchema),
   total: z.number(),
 });
 
-export type ProductsListResponse = z.infer<typeof ProductsListResponseSchema>;
+export type ProductsListResponseDto = z.infer<typeof ProductsListResponseSchema>;

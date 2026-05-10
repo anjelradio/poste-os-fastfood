@@ -1,1 +1,3 @@
-from .supplier_serializers import SupplierSerializer
+from .supplier_serializers import SupplierListSerializer, SupplierSerializer
+
+__all__ = ["SupplierListSerializer", "SupplierSerializer"]

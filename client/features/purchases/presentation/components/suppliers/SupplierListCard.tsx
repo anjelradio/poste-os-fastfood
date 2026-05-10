@@ -5,11 +5,7 @@ import Link from "next/link";
 import DeleteSupplier from "./DeleteSupplier";
 import type { Supplier } from "@/features/purchases/domain/entities/supplier";
 
-type SupplierListCardProps = {
-  supplier: Supplier;
-};
-
-export default function SupplierListCard({ supplier }: SupplierListCardProps) {
+export default function SupplierListCard({ supplier }: { supplier: Supplier }) {
   return (
     <>
       <div

@@ -5,10 +5,6 @@ import { suppliersRepository } from "../../data/repositories/suppliers.repositor
 
 const suppliersPath = "/administracion/compras-y-proveedores/proveedores";
 
-export async function getSuppliersAction() {
-  return suppliersRepository.getSuppliers();
-}
-
 export async function getSupplierByIdAction(id: number) {
   return suppliersRepository.getSupplierById(id);
 }

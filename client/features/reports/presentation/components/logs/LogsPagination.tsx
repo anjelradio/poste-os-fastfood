@@ -1,22 +1,31 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { toLogsSearchQuery, type LogsFilters } from "@/features/reports/data/mappers/log.mapper";
+
 type LogsPaginationProps = {
   page: number;
   totalPages: number;
+  filters?: LogsFilters;
 };
+
+function getLogsPageHref(page: number, filters?: LogsFilters) {
+  const params = toLogsSearchQuery(filters);
+  params.set("page", page.toString());
+  return `/administracion/historial-y-reportes/bitacora?${params.toString()}`;
+}
 
 export default function LogsPagination({
   page,
   totalPages,
+  filters,
 }: LogsPaginationProps) {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  console.log(pages);
   return (
     <nav className="flex items-center justify-center gap-2 sm:gap-3 mt-8 pb-10">
       {page > 1 && (
         <Link
-          href={`/administracion/historial-y-reportes/bitacora?page=${page - 1}`}
+          href={getLogsPageHref(page - 1, filters)}
           className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-2 flex items-center justify-center transition-all duration-300 group"
           style={{
             border: "2px solid transparent",
@@ -39,7 +48,7 @@ export default function LogsPagination({
       {pages.map((currentPage) => (
         <Link
           key={currentPage}
-          href={`/administracion/historial-y-reportes/bitacora?page=${currentPage}`}
+          href={getLogsPageHref(currentPage, filters)}
           className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-2 flex items-center justify-center transition-all duration-300 group"
           style={
             page === currentPage
@@ -74,7 +83,7 @@ export default function LogsPagination({
       ))}
       {page < totalPages && (
         <Link
-          href={`/administracion/historial-y-reportes/bitacora?page=${page + 1}`}
+          href={getLogsPageHref(page + 1, filters)}
           className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-2 flex items-center justify-center transition-all duration-300 group"
           style={{
             border: "2px solid transparent",

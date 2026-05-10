@@ -11,14 +11,14 @@ import { productsRepository } from "@/features/products/data/repositories/produc
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: { page: string; productName: string; category: string };
+  searchParams: Promise<{ page?: string; product_name?: string; category?: string }>;
 }) {
   const pageQuery = await searchParams;
   const page = +(pageQuery.page ?? "1");
   const pageSize = 8;
 
   const filters = {
-    productName: pageQuery.productName ?? "",
+    productName: pageQuery.product_name ?? "",
     category: pageQuery.category ?? "",
   };
 
@@ -42,7 +42,7 @@ export default async function ProductsPage({
   return (
     <div className="flex-1 pb-10">
       {/* Title with Back Button */}
-      <ReturnHeading titlePage="Gestión del Catálogo" />
+      <ReturnHeading titlePage="Gestión del Catálogo" backHref="/administracion" />
 
       {/* Create Product Button */}
       <CustomLinkButton pageUrl="/administracion/productos/agregar" />

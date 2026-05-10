@@ -7,11 +7,15 @@ export const ChangeEmailVerifyOtpRequestSchema = z.object({
 });
 
 export const ChangeEmailConfirmRequestSchema = z.object({
-  verification_token: z.string().min(1, "El token de verificación es requerido"),
-  new_email: z.string().email("El correo electrónico no es válido"),
+  verificationToken: z.string().min(1, "El token de verificación es requerido"),
+  newEmail: z.string().email("El correo electrónico no es válido"),
 });
 
 export const ChangeEmailVerifyOtpResponseSchema = z.object({
   message: z.string(),
   verification_token: z.string(),
 });
+
+export type ChangeEmailVerifyOtpResponseDto = z.infer<
+  typeof ChangeEmailVerifyOtpResponseSchema
+>;

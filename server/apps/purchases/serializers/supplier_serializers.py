@@ -6,4 +6,22 @@ from apps.purchases.models import Supplier
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
-        fields = "__all__"
+        fields = (
+            "id",
+            "business_name",
+            "contact_name",
+            "phone",
+            "email",
+        )
+
+
+class SupplierListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = (
+            "id",
+            "business_name",
+            "contact_name",
+            "phone",
+            "email",
+        )

@@ -18,7 +18,7 @@ export default function UserListCard({ user }: UserListCardProps) {
       >
         <div className="text-gray-200">{user.username}</div>
         <div className="text-gray-200">{user.name}</div>
-        <div className="text-gray-200">{user.last_name}</div>
+        <div className="text-gray-200">{user.lastName}</div>
         <div className="text-gray-200 truncate">{user.email}</div>
         <div className="text-gray-200">{user.role}</div>
         <div className="flex items-center gap-3">
@@ -42,7 +42,7 @@ export default function UserListCard({ user }: UserListCardProps) {
         <div className="space-y-2">
           <div className="text-gray-200 font-semibold text-lg">{user.username}</div>
           <div className="text-gray-400 text-sm">
-            {user.name} {user.last_name}
+            {user.name} {user.lastName}
           </div>
           <div className="text-gray-300 text-sm">{user.email}</div>
           <div className="text-orange-400 font-bold text-base">{user.role}</div>

@@ -120,6 +120,7 @@ export default function OrderFiltersForm({ urlSearch }: OrderFiltersFormProps) {
                   <option value="PENDING">Pendiente</option>
                   <option value="PREPARING">Preparando</option>
                   <option value="READY">Entregados</option>
+                  <option value="CANCELLED">Cancelados</option>
                 </select>
               </div>
 
@@ -140,6 +141,7 @@ export default function OrderFiltersForm({ urlSearch }: OrderFiltersFormProps) {
                   <option value="ALL">Todos los tipos</option>
                   <option value="LLEVAR">Para llevar</option>
                   <option value="MESA">Para mesa</option>
+                  <option value="DELIVERY">Para enviar</option>
                 </select>
               </div>
 

@@ -17,11 +17,12 @@ import {
   toSupplierEntityList,
   toSupplierRequestDto,
 } from "../mappers/supplier.mapper";
-import { SupplierRequestSchema } from "../schemas/supplier.schema";
 import {
-  SupplierResponseDtoSchema,
-  SuppliersListResponseSchema,
-} from "../schemas/supplier-response.schema";
+  CreateSupplierRequestSchema,
+  UpdateSupplierRequestSchema,
+} from "../schemas/supplier-request.schema";
+import { SupplierResponseDtoSchema } from "../schemas/supplier-response.schema";
+import { SuppliersListResponseSchema } from "../schemas/suppliers-list-response.schema";
 
 const baseUrl = `${env.API_URL}/purchases/suppliers`;
 
@@ -32,8 +33,8 @@ export const suppliersApi = {
     return apiRequestJson({
       url: `${baseUrl}/`,
       method: "GET",
-      token: token ?? undefined,
       cache: "no-store",
+      token: token ?? undefined,
       fallbackMessage: "Error al obtener los proveedores.",
       responseSchema: SuppliersListResponseSchema,
       mapData: toSupplierEntityList,
@@ -46,8 +47,8 @@ export const suppliersApi = {
     return apiRequestMaybeJson({
       url: `${baseUrl}/${id}/`,
       method: "GET",
-      token: token ?? undefined,
       cache: "no-store",
+      token: token ?? undefined,
       fallbackMessage: "Error al obtener el proveedor.",
       responseSchema: SupplierResponseDtoSchema,
       mapData: toSupplierEntity,
@@ -55,7 +56,7 @@ export const suppliersApi = {
   },
 
   async createSupplier(data: unknown): Promise<ApiStatusResult> {
-    const input = parseWithSchema(SupplierRequestSchema, data);
+    const input = parseWithSchema(CreateSupplierRequestSchema, data);
     if (!input.ok) {
       return input;
     }
@@ -72,7 +73,7 @@ export const suppliersApi = {
   },
 
   async updateSupplier(id: number, data: unknown): Promise<ApiStatusResult> {
-    const input = parseWithSchema(SupplierRequestSchema, data);
+    const input = parseWithSchema(UpdateSupplierRequestSchema, data);
     if (!input.ok) {
       return input;
     }

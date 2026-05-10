@@ -1,11 +1,21 @@
 import { getAccessToken } from "@/lib/api/get-token";
 import { env } from "@/lib/config/env";
-import { errorResult } from "@/features/shared/data/infrastructure/api-error-result";
+import { apiRequestJson } from "@/features/shared/data/infrastructure/api/api-client";
 import type { ApiResult } from "@/features/shared/data/types/api-result";
 import {
+  toLogEntityList,
+  toLogsQueryParams,
+  type LogsFilters,
+} from "../mappers/log.mapper";
+import {
   LogsListResponseSchema,
-  type LogsListResponse,
+  type LogsListResponseDto,
 } from "../schemas/logs/logs-list-response.schema";
+
+type LogsListResponse = {
+  data: ReturnType<typeof toLogEntityList>;
+  totalLogs: number;
+};
 
 const baseUrl = `${env.API_URL}/reports/logbook`;
 
@@ -13,48 +23,23 @@ export const logsApi = {
   async getLogs(
     page: number,
     pageSize: number,
-    filters?: { area: string; date: string },
+    filters?: LogsFilters,
   ): Promise<ApiResult<LogsListResponse>> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-    });
-
-    if (filters?.area) {
-      params.set("area", filters.area);
-    }
-
-    if (filters?.date) {
-      params.set("date", filters.date);
-    }
+    const params = toLogsQueryParams({ page, pageSize, filters });
 
     const token = await getAccessToken();
 
-    try {
-      const res = await fetch(`${baseUrl}/?${params.toString()}`, {
-        cache: "no-store",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!res.ok) {
-        return errorResult("Error al obtener la bitacora.");
-      }
-
-      const responseData = await res.json();
-      const parsedData = LogsListResponseSchema.safeParse(responseData);
-
-      if (!parsedData.success) {
-        return errorResult("Error en la respuesta del servidor");
-      }
-
-      return {
-        ok: true,
-        data: parsedData.data,
-      };
-    } catch {
-      return errorResult("Error de conexion. Intenta mas tarde.");
-    }
+    return apiRequestJson({
+      url: `${baseUrl}/?${params.toString()}`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener la bitacora.",
+      responseSchema: LogsListResponseSchema,
+      mapData: (dto: LogsListResponseDto) => ({
+        data: toLogEntityList(dto.data),
+        totalLogs: dto.total_logs,
+      }),
+    });
   },
 };

@@ -5,11 +5,7 @@ import { User } from "lucide-react";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import AppDialogModal from "@/features/shared/components/modals/AppDialogModal";
 import FormSubmitButton from "@/features/shared/components/submit/FormSubmitButton";
-import {
-  handleApiErrors,
-  handleValidationErrors,
-  handleZodErrors,
-} from "@/lib/api/errors";
+import { submitWithSchema } from "@/features/shared/data/infrastructure/forms/submit-with-schema";
 import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
 import { updateProfileInfoAction } from "@/features/users/presentation/actions/profile-actions";
 import { UpdateProfileInfoRequestSchema } from "@/features/users/data/schemas/update-profile-info-request.schema";
@@ -20,34 +16,24 @@ export default function EditProfileInfoButton() {
   const { user, setUser } = useAppStore();
 
   const handleSubmit = async (formData: FormData) => {
-    const data = {
-      username: formData.get("username"),
-      name: formData.get("name"),
-      last_name: formData.get("last_name"),
-    };
+    await submitWithSchema({
+      schema: UpdateProfileInfoRequestSchema,
+      payload: {
+        username: formData.get("username"),
+        name: formData.get("name"),
+        lastName: formData.get("lastName"),
+      },
+      action: updateProfileInfoAction,
+      onSuccess: ({ data }) => {
+        if (!data) {
+          return;
+        }
 
-    const result = UpdateProfileInfoRequestSchema.safeParse(data);
-
-    if (!result.success) {
-      handleZodErrors(result.error.issues);
-      return;
-    }
-
-    const response = await updateProfileInfoAction(result.data);
-
-    if (!response.ok) {
-      if (response.validationErrors) {
-        handleValidationErrors(response.validationErrors);
-        return;
-      }
-
-      handleApiErrors(response.errors);
-      return;
-    }
-
-    setUser(response.data);
-    showSuccessToast("Información actualizada correctamente");
-    setOpen(false);
+        setUser(data);
+        showSuccessToast("Información actualizada correctamente");
+        setOpen(false);
+      },
+    });
   };
 
   return (
@@ -82,9 +68,9 @@ export default function EditProfileInfoButton() {
           <CustomFieldedFormText name="name" label="Nombres" defaultValue={user?.name} />
 
           <CustomFieldedFormText
-            name="last_name"
+            name="lastName"
             label="Apellidos"
-            defaultValue={user?.last_name}
+            defaultValue={user?.lastName}
           />
 
           <div className="flex flex-col sm:flex-row gap-3">

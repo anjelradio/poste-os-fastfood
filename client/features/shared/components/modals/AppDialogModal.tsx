@@ -50,12 +50,12 @@ export default function AppDialogModal({
 
           <div className="relative rounded-2xl bg-gradient-to-b from-yellow-400 via-orange-500 to-orange-600 p-[1.5px] shadow-[0_18px_46px_rgba(0,0,0,0.65)]">
             <div className="rounded-[15px] bg-black/80 p-6 backdrop-blur-xl sm:p-8">
-              <div className="mb-6">
-                <DialogTitle className="mb-2 text-2xl font-bold text-white">
+              <div className="mb-6 text-center">
+                <DialogTitle className="mb-2 text-2xl font-bold text-white text-center">
                   {title}
                 </DialogTitle>
                 {subtitle ? (
-                  <DialogDescription className="text-base text-gray-300">
+                  <DialogDescription className="text-base text-gray-300 text-center">
                     {subtitle}
                   </DialogDescription>
                 ) : null}

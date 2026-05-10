@@ -1,11 +1,12 @@
 from decimal import Decimal
+from datetime import datetime
 
 from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.orders.models import Order, OrderProducts
+from apps.orders.models import DeliveryDetail, Order, OrderProducts
 from apps.products.models import Product
 
 
@@ -39,17 +40,11 @@ class OrderSerializer(serializers.Serializer):
             "max_length": "El nombre del cliente es muy largo",
         },
     )
-    total = serializers.DecimalField(
-        max_digits=9,
-        decimal_places=2,
-        required=True,
-        error_messages={
-            "required": "El total es requerido",
-            "invalid": "El total debe ser un numero valido",
-        },
-    )
     type = serializers.ChoiceField(choices=Order.OrderType.choices, required=True)
-    reserved_at = serializers.DateTimeField(required=False, allow_null=True)
+    reserved_at = serializers.TimeField(required=False, allow_null=True)
+    client_phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    address = serializers.CharField(required=False, allow_blank=True)
+    reference_note = serializers.CharField(required=False, allow_blank=True)
     order = OrderItems(
         many=True,
         required=True,
@@ -71,6 +66,17 @@ class OrderSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     "Hay errores en los productos de la orden"
                 )
+
+        if data.get("type") == Order.OrderType.DELIVERY:
+            if not data.get("client_phone"):
+                raise serializers.ValidationError(
+                    {"client_phone": "El número del cliente es obligatorio para envío"}
+                )
+            if not data.get("address"):
+                raise serializers.ValidationError(
+                    {"address": "La dirección es obligatoria para envío"}
+                )
+
         return data
 
     def create(self, validated_data):
@@ -82,12 +88,22 @@ class OrderSerializer(serializers.Serializer):
                 max_order_number=Max("order_number")
             )["max_order_number"]
             order_number = (max_order_number or 0) + 1
+
+            reserved_time = validated_data.get("reserved_at")
+            reserved_at = None
+            if reserved_time is not None:
+                local_datetime = datetime.combine(today, reserved_time)
+                reserved_at = timezone.make_aware(
+                    local_datetime, timezone.get_current_timezone()
+                )
+
             order = Order.objects.create(
                 client_name=validated_data["client_name"],
                 total=0,
                 order_number=order_number,
                 type=validated_data["type"],
-                reserved_at=validated_data.get("reserved_at"),
+                reserved_at=reserved_at,
+                user=validated_data.get("user"),
             )
             total = Decimal("0.00")
             for item in items:
@@ -100,12 +116,73 @@ class OrderSerializer(serializers.Serializer):
                 )
                 total += subtotal
 
+            if validated_data["type"] == Order.OrderType.DELIVERY:
+                DeliveryDetail.objects.create(
+                    order=order,
+                    client_phone=validated_data.get("client_phone", ""),
+                    address=validated_data.get("address", ""),
+                    reference_note=validated_data.get("reference_note", ""),
+                )
+
         order.total = total
         order.save()
         return order
 
+    def update(self, instance, validated_data):
+        items = validated_data.pop("order")
+
+        with transaction.atomic():
+            today = timezone.localdate()
+
+            reserved_time = validated_data.get("reserved_at")
+            reserved_at = None
+            if reserved_time is not None:
+                local_datetime = datetime.combine(today, reserved_time)
+                reserved_at = timezone.make_aware(
+                    local_datetime, timezone.get_current_timezone()
+                )
+
+            instance.client_name = validated_data["client_name"]
+            instance.type = validated_data["type"]
+            instance.reserved_at = reserved_at
+            instance.save()
+
+            if instance.type == Order.OrderType.DELIVERY:
+                DeliveryDetail.objects.update_or_create(
+                    order=instance,
+                    defaults={
+                        "client_phone": validated_data.get("client_phone", ""),
+                        "address": validated_data.get("address", ""),
+                        "reference_note": validated_data.get("reference_note", ""),
+                    },
+                )
+            else:
+                DeliveryDetail.objects.filter(order=instance).delete()
+
+            OrderProducts.objects.filter(order=instance).delete()
+
+            total = Decimal("0.00")
+            for item in items:
+                product = Product.objects.get(id=item["id"])
+                quantity = item["quantity"]
+                subtotal = product.price * quantity
+
+                OrderProducts.objects.create(
+                    order=instance,
+                    product=product,
+                    quantity=quantity,
+                    subtotal=subtotal,
+                )
+                total += subtotal
+
+            instance.total = total
+            instance.save()
+
+        return instance
+
 
 class ProductItemSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="product.id", read_only=True)
     name = serializers.CharField(source="product.name", read_only=True)
 
     class Meta:
@@ -129,3 +206,40 @@ class OrderListSerializer(serializers.ModelSerializer):
         )
 
     items = ProductItemSerializer(many=True, read_only=True)
+
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    items = ProductItemSerializer(many=True, read_only=True)
+    client_phone = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+    reference_note = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = (
+            "id",
+            "order_number",
+            "client_name",
+            "type",
+            "reserved_at",
+            "status",
+            "items",
+            "client_phone",
+            "address",
+            "reference_note",
+        )
+
+    def _get_delivery_detail(self, obj):
+        return DeliveryDetail.objects.filter(order=obj).first()
+
+    def get_client_phone(self, obj):
+        delivery_detail = self._get_delivery_detail(obj)
+        return delivery_detail.client_phone if delivery_detail else None
+
+    def get_address(self, obj):
+        delivery_detail = self._get_delivery_detail(obj)
+        return delivery_detail.address if delivery_detail else None
+
+    def get_reference_note(self, obj):
+        delivery_detail = self._get_delivery_detail(obj)
+        return delivery_detail.reference_note if delivery_detail else None
