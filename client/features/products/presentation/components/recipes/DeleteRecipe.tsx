@@ -3,12 +3,22 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import AppAlertModal from "@/features/shared/components/modals/AppAlertModal";
-import { showSuccessToast } from "@/features/shared/components/toast/ToastNotifications";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/features/shared/components/toast/ToastNotifications";
+import { deleteRecipeByProductIdAction } from "../../actions/recipe-actions";
 
 export default function DeleteRecipe({ recipe, className, showLabel = false }: any) {
   const [open, setOpen] = useState(false);
 
   async function handleConfirmDelete() {
+    const response = await deleteRecipeByProductIdAction(recipe.id);
+    if (!response.ok) {
+      showErrorToast(response.errors?.[0] ?? "Error al eliminar la receta");
+      return false;
+    }
+
     showSuccessToast("Receta eliminada correctamente");
     return true;
   }

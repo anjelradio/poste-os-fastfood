@@ -14,7 +14,7 @@ export default async function BitacoraPage({
 }) {
   const pageQuery = await searchParams;
   const page = +(pageQuery.page ?? "1");
-  const pageSize = 8;
+  const pageSize = 30;
 
   const filters = {
     area: pageQuery.area ?? "",

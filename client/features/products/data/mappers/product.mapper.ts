@@ -5,6 +5,7 @@ import type { ProductResponseDto } from "../schemas/product-response.schema";
 export type ProductsFilters = {
   productName?: string;
   category?: string;
+  hasRecipe?: boolean;
 };
 
 export function toProductEntity(dto: ProductResponseDto): Product {
@@ -51,6 +52,10 @@ export function toProductsQueryParams(input: {
     params.set("category", input.filters.category);
   }
 
+  if (input.filters?.hasRecipe !== undefined) {
+    params.set("has_recipe", String(input.filters.hasRecipe));
+  }
+
   return params;
 }
 
@@ -63,6 +68,10 @@ export function toProductsSearchQuery(filters?: ProductsFilters) {
 
   if (filters?.category) {
     params.set("category", filters.category);
+  }
+
+  if (filters?.hasRecipe !== undefined) {
+    params.set("has_recipe", String(filters.hasRecipe));
   }
 
   return params;

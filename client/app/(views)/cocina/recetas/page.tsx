@@ -5,6 +5,7 @@ import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
 import RecipeListCard from "@/features/products/presentation/components/recipes/RecipeListCard";
 import RecipeSearchForm from "@/features/products/presentation/components/recipes/RecipeSearchForm";
 import RecipesPagination from "@/features/products/presentation/components/recipes/RecipesPagination";
+import { productsRepository } from "@/features/products/data/repositories/products.repository";
 
 export default async function RecipesPage({
   searchParams,
@@ -22,7 +23,17 @@ export default async function RecipesPage({
 
   if (page < 1) redirect("/cocina/recetas");
 
-  const totalRecipes = 24;
+  const response = await productsRepository.getProducts(page, pageSize, {
+    ...filters,
+    hasRecipe: true,
+  });
+
+  if (!response.ok) {
+    throw new Error(response.errors[0] ?? "Error al obtener las recetas.");
+  }
+
+  const recipes = response.data.products;
+  const totalRecipes = response.data.total;
   const totalPages = Math.max(1, Math.ceil(totalRecipes / pageSize));
 
   if (page > totalPages) redirect("/cocina/recetas");
@@ -50,9 +61,9 @@ export default async function RecipesPage({
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: "400px" }}>
-          <RecipeListCard />
-          <RecipeListCard />
-          <RecipeListCard />
+          {recipes.map((recipe) => (
+            <RecipeListCard key={recipe.id} recipe={recipe} />
+          ))}
         </div>
       </GradientCard>
 

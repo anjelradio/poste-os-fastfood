@@ -4,7 +4,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.authentication.permissions import IsAdmin
+from apps.authentication.permissions import IsAdmin, IsAdminOrCocina
 from apps.base.mixins import ErrorResponseMixin
 from apps.inventory.serializers import (
     MeasureUnitSerializer,
@@ -25,6 +25,12 @@ class RawMaterialViewSet(ErrorResponseMixin, ModelViewSet):
     permission_classes = [IsAdmin]
     serializer_class = RawMaterialSerializer
     list_serializer_class = RawMaterialListSerializer
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsAdminOrCocina()]
+
+        return [IsAdmin()]
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):

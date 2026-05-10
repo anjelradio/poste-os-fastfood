@@ -36,6 +36,7 @@ urlpatterns = [
     path("auth/", include("apps.authentication.urls")),
     path("users/", include("apps.users.urls")),
     path("inventory/", include("apps.inventory.urls")),
+    path("purchases/", include("apps.purchases.urls")),
     path("sistema/", include("apps.reports.urls")),
     path("reports/", include("apps.reports.urls")),
 ]

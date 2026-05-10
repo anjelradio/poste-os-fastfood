@@ -6,7 +6,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.authentication.permissions import IsAdmin, IsAdminOrCaja
+from apps.authentication.permissions import (
+    IsAdmin,
+    IsAdminOrCaja,
+    IsAdminOrCajaOrCocina,
+)
 from apps.base.mixins import ErrorResponseMixin
 from apps.products.models import Category
 from apps.products.serializers import (
@@ -25,7 +29,8 @@ class ProductViewSet(ErrorResponseMixin, ModelViewSet):
     def get_permissions(self):
         if self.action == "list_by_category":
             return [IsAdminOrCaja()]
-
+        if self.action == "list":
+            return [IsAdminOrCajaOrCocina()]
         return [IsAdmin()]
 
     def get_serializer_class(self):

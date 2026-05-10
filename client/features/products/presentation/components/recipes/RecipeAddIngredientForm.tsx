@@ -1,49 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { MeasureUnit } from "@/features/inventory/domain/entities/measure-unit";
 import type { RawMaterial } from "@/features/inventory/domain/entities/raw-material";
-import {
-  getMeasureUnitsAction,
-  getRawMaterialsAction,
-} from "@/features/inventory/presentation/actions/inventory-actions";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import CustomSelectForm from "@/features/shared/components/forms/CustomSelectForm";
 import AddItemSubmitButton from "@/features/shared/components/submit/AddItemSubmitButton";
-import { handleApiErrors } from "@/lib/api/errors";
+import { showErrorToast } from "@/features/shared/components/toast/ToastNotifications";
+
+type AddIngredientPayload = {
+  rawMaterialId: number;
+  rawMaterialName: string;
+  measureUnitId: number;
+  measureUnitName: string;
+  quantity: number;
+};
 
 export default function RecipeAddIngredientForm({
   onSubmit,
   productId,
-}: any) {
-  const [rawMaterials, setRawMaterials] = useState<RawMaterial[]>([]);
-  const [measureUnits, setMeasureUnits] = useState<MeasureUnit[]>([]);
+  rawMaterials,
+  measureUnits,
+}: {
+  onSubmit: (payload: AddIngredientPayload) => void;
+  productId: number;
+  rawMaterials: RawMaterial[];
+  measureUnits: MeasureUnit[];
+}) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  useEffect(() => {
-    const loadInventoryData = async () => {
-      const [rawMaterialsResponse, measureUnitsResponse] = await Promise.all([
-        getRawMaterialsAction(),
-        getMeasureUnitsAction(),
-      ]);
+    const formData = new FormData(e.currentTarget);
+    const rawMaterialId = Number(formData.get("rawMaterial") || 0);
+    const measureUnitId = Number(formData.get("unit") || 0);
+    const quantity = Number(formData.get("amount") || 0);
 
-      if (!rawMaterialsResponse.ok) {
-        handleApiErrors(rawMaterialsResponse.errors);
-      } else {
-        setRawMaterials(rawMaterialsResponse.data);
-      }
+    const rawMaterial = rawMaterials.find((item) => item.id === rawMaterialId);
+    const measureUnit = measureUnits.find((item) => item.id === measureUnitId);
 
-      if (!measureUnitsResponse.ok) {
-        handleApiErrors(measureUnitsResponse.errors);
-      } else {
-        setMeasureUnits(measureUnitsResponse.data);
-      }
-    };
+    if (!rawMaterialId || !rawMaterial) {
+      showErrorToast("Selecciona una materia prima");
+      return;
+    }
 
-    loadInventoryData();
-  }, []);
+    if (!measureUnitId || !measureUnit) {
+      showErrorToast("Selecciona una unidad");
+      return;
+    }
+
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      showErrorToast("La cantidad debe ser mayor a 0");
+      return;
+    }
+
+    onSubmit({
+      rawMaterialId,
+      rawMaterialName: rawMaterial.name,
+      measureUnitId,
+      measureUnitName: measureUnit.name,
+      quantity,
+    });
+
+    e.currentTarget.reset();
+  };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="productId" value={productId} />
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
         <div className="md:col-span-5">

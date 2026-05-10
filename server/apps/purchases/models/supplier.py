@@ -20,4 +20,4 @@ class Supplier(BaseModel):
 
     def __str__(self):
         """Unicode representation of Proveedor."""
-        return self.bussines_name
+        return self.business_name

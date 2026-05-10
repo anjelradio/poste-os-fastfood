@@ -1,5 +1,6 @@
 import RecipeListCard from "@/features/products/presentation/components/recipes/RecipeListCard";
 import RecipeSearchHeading from "@/features/products/presentation/components/recipes/RecipeSearchHeading";
+import { productsRepository } from "@/features/products/data/repositories/products.repository";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 
 export default async function SearchRecipesPage({
@@ -10,6 +11,18 @@ export default async function SearchRecipesPage({
   const params = await searchParams;
   const productName = params.product_name || "";
   const category = params.category || "";
+
+  const response = await productsRepository.getProducts(1, 100, {
+    productName,
+    category,
+    hasRecipe: true,
+  });
+
+  if (!response.ok) {
+    throw new Error(response.errors[0] ?? "Error al obtener las recetas.");
+  }
+
+  const recipes = response.data.products;
 
   return (
     <div className="flex-1 pb-10">
@@ -32,10 +45,9 @@ export default async function SearchRecipesPage({
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: "900px" }}>
-          <RecipeListCard />
-          <RecipeListCard />
-          <RecipeListCard />
-          <RecipeListCard />
+          {recipes.map((recipe) => (
+            <RecipeListCard key={recipe.id} recipe={recipe} />
+          ))}
         </div>
       </GradientCard>
     </div>

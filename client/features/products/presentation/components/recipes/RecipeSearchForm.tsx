@@ -45,7 +45,7 @@ export default function RecipeSearchForm() {
     }
 
     const query = params.toString();
-    router.push(query ? `/cocina/recetas?${query}` : "/cocina/recetas");
+    router.push(query ? `/cocina/recetas/search?${query}` : "/cocina/recetas/search");
   };
 
   return (
