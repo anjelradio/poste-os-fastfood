@@ -6,6 +6,8 @@ from rest_framework.viewsets import ModelViewSet
 from apps.authentication.permissions import IsAdmin
 from apps.base.mixins import ErrorResponseMixin
 from apps.purchases.serializers import SupplierListSerializer, SupplierSerializer
+from apps.reports.models import Logbook
+from apps.reports.services import create_logbook
 
 
 class SupplierViewSet(ErrorResponseMixin, ModelViewSet):
@@ -38,7 +40,12 @@ class SupplierViewSet(ErrorResponseMixin, ModelViewSet):
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            supplier = serializer.save()
+            create_logbook(
+                request,
+                Logbook.ActionChoices.CREATE,
+                f"Proveedor '{supplier.business_name}' creado",
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return self.error_response(serializer.errors)
 
@@ -49,7 +56,12 @@ class SupplierViewSet(ErrorResponseMixin, ModelViewSet):
 
         serializer = self.serializer_class(supplier, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            updated_supplier = serializer.save()
+            create_logbook(
+                request,
+                Logbook.ActionChoices.UPDATE,
+                f"Proveedor '{updated_supplier.business_name}' actualizado",
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return self.error_response(serializer.errors)
 
@@ -61,4 +73,9 @@ class SupplierViewSet(ErrorResponseMixin, ModelViewSet):
         supplier.state = False
         supplier.deleted_date = timezone.localdate()
         supplier.save()
+        create_logbook(
+            request,
+            Logbook.ActionChoices.DELETE,
+            f"Proveedor '{supplier.business_name}' eliminado",
+        )
         return Response(status=status.HTTP_200_OK)
