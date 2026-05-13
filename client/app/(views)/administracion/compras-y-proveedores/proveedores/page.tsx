@@ -3,8 +3,16 @@ import CustomLinkButton from "@/features/shared/components/ui/CustomLinkButton";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
 import SupplierListCard from "@/features/purchases/presentation/components/suppliers/SupplierListCard";
+import { suppliersRepository } from "@/features/purchases/data/repositories/supplier.repository";
 
-export default function SuppliersPage() {
+export default async function SuppliersPage() {
+  const response = await suppliersRepository.getSuppliers();
+  if (!response.ok) {
+    throw new Error(response.errors[0] ?? "Error al obtener los proveedores.");
+  }
+
+  const suppliers = response.data;
+
   return (
     <div className="flex-1 pb-10">
       <ReturnHeading
@@ -35,9 +43,9 @@ export default function SuppliersPage() {
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: "420px" }}>
-          <SupplierListCard />
-          <SupplierListCard />
-          <SupplierListCard />
+          {suppliers.map((supplier) => (
+            <SupplierListCard key={supplier.id} supplier={supplier} />
+          ))}
         </div>
       </GradientCard>
     </div>

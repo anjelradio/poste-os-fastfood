@@ -1,17 +1,22 @@
 import Breadcrumb from "@/features/shared/components/ui/Breadcrumb";
 import EditSupplierForm from "@/features/purchases/presentation/components/suppliers/EditSupplierForm";
 import SupplierForm from "@/features/purchases/presentation/components/suppliers/SupplierForm";
+import { getSupplierByIdAction } from "@/features/purchases/presentation/actions/supplier-actions";
 
-export default async function EditSupplierPage({ params }: any) {
+type EditSupplierPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function EditSupplierPage({ params }: EditSupplierPageProps) {
   const resolvedParams = await params;
+  const supplierId = Number(resolvedParams.id);
 
-  const supplier = {
-    id: resolvedParams.id,
-    businessName: "DISTRIBUIDORA LOS ANDES S.R.L.",
-    contactName: "Juan Perez",
-    phone: "+591 71234567",
-    email: "compras@losandes.com",
-  };
+  const response = await getSupplierByIdAction(supplierId);
+  if (!response.ok || !response.data) {
+    throw new Error(response.ok ? "Proveedor no encontrado" : response.errors[0]);
+  }
+
+  const supplier = response.data;
 
   return (
     <div className="flex-1 pb-10">
@@ -20,7 +25,7 @@ export default async function EditSupplierPage({ params }: any) {
         child={`Editar ${supplier.businessName}`}
         backHref="/administracion/compras-y-proveedores/proveedores"
       />
-      <EditSupplierForm>
+      <EditSupplierForm id={supplierId}>
         <SupplierForm supplier={supplier} />
       </EditSupplierForm>
     </div>

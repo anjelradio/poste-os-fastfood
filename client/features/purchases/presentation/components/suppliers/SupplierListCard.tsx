@@ -3,16 +3,9 @@
 import { Edit2 } from "lucide-react";
 import Link from "next/link";
 import DeleteSupplier from "./DeleteSupplier";
+import type { Supplier } from "@/features/purchases/domain/entities/supplier";
 
-export default function SupplierListCard() {
-  const supplier = {
-    id: 1,
-    businessName: "DISTRIBUIDORA LOS ANDES S.R.L.",
-    contactName: "Juan Perez",
-    phone: "+591 71234567",
-    email: "compras@losandes.com",
-  };
-
+export default function SupplierListCard({ supplier }: { supplier: Supplier }) {
   return (
     <>
       <div
@@ -25,7 +18,7 @@ export default function SupplierListCard() {
         <div className="text-gray-200">{supplier.email}</div>
         <div className="flex items-center gap-3">
           <Link
-            href="/administracion/compras-y-proveedores/proveedores/1/editar"
+            href={`/administracion/compras-y-proveedores/proveedores/${supplier.id}/editar`}
             className="text-orange-400 hover:text-orange-300 transition-colors duration-200"
           >
             <Edit2 className="h-5 w-5" />
@@ -48,7 +41,7 @@ export default function SupplierListCard() {
           <div className="text-orange-400 text-sm">Correo: {supplier.email}</div>
           <div className="grid grid-cols-2 gap-3 pt-2">
             <Link
-              href="/administracion/compras-y-proveedores/proveedores/1/editar"
+              href={`/administracion/compras-y-proveedores/proveedores/${supplier.id}/editar`}
               className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-colors duration-200"
             >
               <Edit2 className="h-4 w-4" />
