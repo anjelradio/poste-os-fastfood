@@ -1,25 +1,17 @@
-import { categoriesRepository } from "@/features/products/data/repositories/categories.repository";
+"use client"
 import type { Product } from "@/features/products/domain/entities/product";
 import CustomFieldedFormText from "@/features/shared/components/forms/CustomFieldedFormText";
 import CustomCheckboxForm from "@/features/shared/components/forms/CustomCheckboxForm";
 import CustomSelectForm from "@/features/shared/components/forms/CustomSelectForm";
 import ImageUpload from "./ImageUpload";
-import { CategoryType } from "@/lib/constants/category.constants";
+import { Category } from "@/features/products/domain/entities/category";
 
 type ProductFormProps = {
   product?: Product;
+  categories: Category[];
 };
 
-export default async function ProductForm({ product }: ProductFormProps) {
-  const response = await categoriesRepository.getCategories(
-    CategoryType.PRODUCT,
-  );
-
-  if (!response.ok) {
-    throw new Error(response.errors[0] ?? "Error al obtener las categorias.");
-  }
-
-  const categories = response.data;
+export default function ProductForm({ product, categories }: ProductFormProps) {
   return (
     <>
       {/* Name and Price Row */}

@@ -4,12 +4,7 @@ import CategoryButton from "./CategoryButton";
 
 export default async function CategoryNavbar() {
   const response = await categoriesRepository.getCategories(CategoryType.PRODUCT);
-
-  if (!response.ok) {
-    throw new Error(response.errors[0] ?? "Error al obtener las categorias.");
-  }
-
-  const categories = response.data;
+  const categories = response.ok ? response.data : [];
 
   return (
     <nav>
