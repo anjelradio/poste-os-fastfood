@@ -28,7 +28,7 @@ def validate_password_policy(value):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "email", "name", "last_name", "role")
+        fields = ("id", "username", "email", "name", "last_name", "role", "description")
 
 
 class UpdateUserInfoSerializer(serializers.ModelSerializer):
@@ -56,7 +56,15 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "name", "last_name", "email", "password", "role")
+        fields = (
+            "username",
+            "name",
+            "last_name",
+            "email",
+            "password",
+            "role",
+            "description",
+        )
         extra_kwargs = {
             "username": {
                 "error_messages": {
@@ -92,6 +100,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
                     "invalid_choice": "El rol seleccionado no es válido",
                 }
             },
+            "description": {
+                "error_messages": {
+                    "max_length": "La descripción no puede tener más de 50 caracteres",
+                }
+            },
         }
 
     def validate_password(self, value):
@@ -105,6 +118,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
             last_name=validated_data["last_name"],
             password=validated_data["password"],
             role=validated_data["role"],
+            description=validated_data.get("description"),
         )
 
 
@@ -113,7 +127,15 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "name", "last_name", "email", "password", "role")
+        fields = (
+            "username",
+            "name",
+            "last_name",
+            "email",
+            "password",
+            "role",
+            "description",
+        )
 
     def validate_password(self, value):
         return validate_password_policy(value)

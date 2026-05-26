@@ -25,6 +25,7 @@ export default function EditUserForm({
         name: formData.get("name"),
         lastName: formData.get("lastName"),
         email: formData.get("email"),
+        description: formData.get("description"),
         role: formData.get("role"),
         password: formData.get("password"),
       },

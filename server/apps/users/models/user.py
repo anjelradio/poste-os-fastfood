@@ -19,6 +19,7 @@ class UserManager(BaseUserManager):
         name,
         last_name,
         role,
+        description,
         password,
         is_staff,
         is_superuser,
@@ -30,6 +31,7 @@ class UserManager(BaseUserManager):
             name=name,
             last_name=last_name,
             role=role,
+            description=description,
             is_staff=is_staff,
             is_superuser=is_superuser,
             **extra_fields,
@@ -39,7 +41,15 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(
-        self, username, email, name, last_name, password=None, role=None, **extra_fields
+        self,
+        username,
+        email,
+        name,
+        last_name,
+        password=None,
+        role=None,
+        description=None,
+        **extra_fields,
     ):
         """
         Crea un usuario normal. Por defecto, el rol es CAJA.
@@ -51,6 +61,7 @@ class UserManager(BaseUserManager):
             name,
             last_name,
             role,
+            description,
             password,
             False,
             False,
@@ -58,14 +69,31 @@ class UserManager(BaseUserManager):
         )
 
     def create_superuser(
-        self, username, email, name, last_name, password=None, role=None, **extra_fields
+        self,
+        username,
+        email,
+        name,
+        last_name,
+        password=None,
+        role=None,
+        description=None,
+        **extra_fields,
     ):
         """
         Crea un superusuario. Por defecto, el rol es ADMIN.
         """
         role = role or User.Roles.ADMIN
         return self._create_user(
-            username, email, name, last_name, role, password, True, True, **extra_fields
+            username,
+            email,
+            name,
+            last_name,
+            role,
+            description,
+            password,
+            True,
+            True,
+            **extra_fields,
         )
 
 
@@ -86,6 +114,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(
         "Rol", max_length=10, choices=Roles.choices, default=Roles.CAJA
     )
+    description = models.CharField("Descripcion", null=True, blank=True, max_length=50)
 
     # Estados del usuario
     is_active = models.BooleanField(default=True)

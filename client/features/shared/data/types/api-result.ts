@@ -15,6 +15,12 @@ export type ApiStatusOk = { ok: true };
 export type ApiResult<T> = ApiOk<T> | ApiError;
 export type ApiMaybeResult<T> = ApiOk<T | null> | ApiError;
 export type ApiStatusResult = ApiStatusOk | ApiError;
+export type ApiFileData = {
+  bytes: number[];
+  contentType: string;
+  fileName: string;
+};
+export type ApiMaybeFileResult = ApiMaybeResult<ApiFileData>;
 
 export type ApiErrorResult = ApiError;
 export type ApiSuccessResult<T> = ApiOk<T>;

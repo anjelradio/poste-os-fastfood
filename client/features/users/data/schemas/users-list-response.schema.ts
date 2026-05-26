@@ -7,6 +7,7 @@ export const UserResponseDtoSchema = z.object({
   name: z.string(),
   last_name: z.string(),
   role: z.enum(["ADMIN", "CAJA", "COCINA"]),
+  description: z.string().nullable(),
 });
 
 export const UsersListResponseSchema = z.array(UserResponseDtoSchema);

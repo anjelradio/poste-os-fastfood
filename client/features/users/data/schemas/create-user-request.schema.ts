@@ -5,6 +5,12 @@ export const CreateUserRequestSchema = z.object({
   name: z.string().trim().min(1, { message: "El nombre es requerido" }),
   lastName: z.string().trim().min(1, { message: "El apellido es requerido" }),
   email: z.string().trim().email({ message: "Correo electrónico no válido" }),
+  description: z
+    .string()
+    .trim()
+    .max(50, { message: "La descripción no puede tener más de 50 caracteres" })
+    .optional()
+    .transform((value) => value ?? ""),
   role: z.enum(["ADMIN", "CAJA", "COCINA"], {
     message: "El rol es requerido",
   }),

@@ -73,6 +73,13 @@ export default function UserForm({ user }: { user?: User }) {
         />
       </div>
 
+      <CustomFieldedFormText
+        name="description"
+        label="Descripción"
+        defaultValue={user?.description ?? ""}
+        placeholder="Descripción"
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
         <CustomFieldedFormText
           key={`password-${generatedPassword}`}

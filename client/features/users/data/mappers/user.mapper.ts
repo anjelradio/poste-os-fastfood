@@ -9,6 +9,7 @@ export function toUserEntity(dto: UserResponseDto): User {
     name: dto.name,
     lastName: dto.last_name,
     role: dto.role,
+    description: dto.description,
   };
 }
 
@@ -22,6 +23,7 @@ type UserMutationData = {
   lastName: string;
   email: string;
   role: "ADMIN" | "CAJA" | "COCINA";
+  description?: string;
   password?: string;
 };
 
@@ -32,6 +34,7 @@ export function toUserMutationRequestDto(data: UserMutationData) {
     last_name: data.lastName,
     email: data.email,
     role: data.role,
+    description: data.description ?? "",
     ...(data.password !== undefined ? { password: data.password } : {}),
   };
 }

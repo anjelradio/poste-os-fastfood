@@ -1,22 +1,20 @@
-import Heading from "@/features/shared/components/ui/Heading";
 import ActionLinkButton from "@/features/shared/components/ui/ActionLinkButton";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
-import { ArrowLeft, BookOpen, Receipt, TrendingUp } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, Receipt, TrendingUp } from "lucide-react";
 import ReturnHeading from "@/features/shared/components/ui/ReturnHeading";
 
 export default function HistoricalReportPage() {
   return (
     <>
       <ReturnHeading
-        titlePage="Inventario y Materias Primas"
+        titlePage="Historial y Reportes"
         backHref="/administracion"
       />
       {/* Cards Grid - 2 columns layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left Column - Reporte de Ganancias (Full Height) */}
+        {/* Left Column - Reportes del Negocio (Full Height) */}
         <GradientCard
-          gradientId="reporte-ganancias"
+          gradientId="reportes-negocio"
           minHeight={400}
           contentClassName="h-full rounded-2xl p-8 flex flex-col"
         >
@@ -39,18 +37,21 @@ export default function HistoricalReportPage() {
 
             <div className="flex-1">
               <h3 className="text-white text-2xl font-bold mb-2">
-                Reporte de Ganancias
+                Reportes del Negocio
               </h3>
               <p className="text-gray-300 text-base">
-                Genera informes financieros y estadísticas de ventas.
+                Genera reportes de ganancias, compras, inventario y ventas por producto.
               </p>
             </div>
           </div>
 
           <div className="flex-1" />
 
-          <ActionLinkButton pageUrl="/administracion/historial-y-reportes/ordenes" className="w-full py-3 text-base">
-            VER REPORTES
+          <ActionLinkButton
+            pageUrl="/administracion/historial-y-reportes/reportes/ganancias"
+            className="w-full py-3 text-base"
+          >
+            MAS REPORTES
           </ActionLinkButton>
         </GradientCard>
         {/* Right Column - 2 rows */}
@@ -141,6 +142,7 @@ export default function HistoricalReportPage() {
               VER BITÁCORA
             </ActionLinkButton>
           </GradientCard>
+
         </div>
       </div>
     </>

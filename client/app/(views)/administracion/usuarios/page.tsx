@@ -29,11 +29,12 @@ export default async function UsersPage() {
         contentClassName="rounded-2xl overflow-hidden"
         contentStyle={{ maxHeight: "400px" }}
       >
-        <div className="hidden md:grid grid-cols-6 gap-4 px-6 py-4 border-b border-gray-600/30 sticky top-0">
+        <div className="hidden md:grid grid-cols-7 gap-4 px-6 py-4 border-b border-gray-600/30 sticky top-0">
           <div className="text-gray-300 font-semibold">Usuario</div>
           <div className="text-gray-300 font-semibold">Nombre</div>
           <div className="text-gray-300 font-semibold">Apellido</div>
           <div className="text-gray-300 font-semibold">Correo</div>
+          <div className="text-gray-300 font-semibold">Descripción</div>
           <div className="text-gray-300 font-semibold">Role</div>
           <div className="text-gray-300 font-semibold">Acciones</div>
         </div>

@@ -40,7 +40,9 @@ class RecipeViewSet(ErrorResponseMixin, GenericViewSet):
 
         create_logbook(
             request,
-            Logbook.ActionChoices.UPDATE if had_recipe else Logbook.ActionChoices.CREATE,
+            Logbook.ActionChoices.UPDATE
+            if had_recipe
+            else Logbook.ActionChoices.CREATE,
             f"Receta de producto '{product.name}' {'actualizada' if had_recipe else 'creada'}",
         )
 

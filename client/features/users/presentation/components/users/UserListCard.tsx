@@ -13,13 +13,14 @@ export default function UserListCard({ user }: UserListCardProps) {
   return (
     <>
       <div
-        className="hidden md:grid grid-cols-6 gap-4 px-6 py-4 border-b border-gray-600/20 hover:bg-orange-500/5 transition-colors duration-200"
+        className="hidden md:grid grid-cols-7 gap-4 px-6 py-4 border-b border-gray-600/20 hover:bg-orange-500/5 transition-colors duration-200"
         style={{ background: "transparent" }}
       >
         <div className="text-gray-200">{user.username}</div>
         <div className="text-gray-200">{user.name}</div>
         <div className="text-gray-200">{user.lastName}</div>
         <div className="text-gray-200 truncate">{user.email}</div>
+        <div className="text-gray-200 truncate">{user.description || "-"}</div>
         <div className="text-gray-200">{user.role}</div>
         <div className="flex items-center gap-3">
           <Link
@@ -45,6 +46,7 @@ export default function UserListCard({ user }: UserListCardProps) {
             {user.name} {user.lastName}
           </div>
           <div className="text-gray-300 text-sm">{user.email}</div>
+          <div className="text-gray-300 text-sm">{user.description || "-"}</div>
           <div className="text-orange-400 font-bold text-base">{user.role}</div>
           <div className="grid grid-cols-2 gap-3 pt-2">
             <Link
