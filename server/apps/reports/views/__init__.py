@@ -1,4 +1,9 @@
+from .client_views import ClientViewSet
 from .logbook_views import LogBookViewSet
-from .purchase_report_views import PurchaseReportPDFView
+from .report_views import ReportView
 
-__all__ = ["LogBookViewSet", "PurchaseReportPDFView"]
+__all__ = [
+    "ClientViewSet",
+    "LogBookViewSet",
+    "ReportView",
+]

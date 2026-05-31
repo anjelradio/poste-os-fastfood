@@ -3,7 +3,6 @@ import Link from "next/link";
 const reportTypes = [
   { key: "ganancias", label: "Ganancias" },
   { key: "compras", label: "Compras" },
-  { key: "inventario", label: "Inventario" },
   { key: "ventas-producto", label: "Ventas por Producto" },
 ] as const;
 
@@ -12,7 +11,7 @@ type ReportType = (typeof reportTypes)[number]["key"];
 export default function ReportsTypeNavbar({ activeType }: { activeType: ReportType }) {
   return (
     <nav className="mb-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 py-2 px-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 py-2 px-1">
         {reportTypes.map((type) => {
           const isActive = type.key === activeType;
           return (

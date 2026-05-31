@@ -1,11 +1,29 @@
 import type { Product } from "../../domain/entities/product";
 import type { CreateProductRequest } from "../schemas/create-product-request.schema";
 import type { ProductResponseDto } from "../schemas/product-response.schema";
+import type { TopSoldProductItemDto } from "../schemas/top-sold-products-response.schema";
 
 export type ProductsFilters = {
   productName?: string;
   category?: string;
   hasRecipe?: boolean;
+};
+
+export type TopSoldMode = "summary" | "list";
+
+export type TopSoldFilters = {
+  mode?: TopSoldMode;
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type TopSoldProductItem = {
+  productId: number;
+  name: string;
+  image: string | null;
+  quantitySold: number;
+  ordersCount: number;
+  revenue: string;
 };
 
 export function toProductEntity(dto: ProductResponseDto): Product {
@@ -32,6 +50,40 @@ export function toProductRequestDto(data: CreateProductRequest) {
     has_recipe: data.hasRecipe,
     image: data.image,
   };
+}
+
+export function toTopSoldProductItem(dto: TopSoldProductItemDto): TopSoldProductItem {
+  return {
+    productId: dto.productId,
+    name: dto.name,
+    image: dto.image,
+    quantitySold: dto.quantitySold,
+    ordersCount: dto.ordersCount,
+    revenue: String(dto.revenue),
+  };
+}
+
+export function toTopSoldProductItemList(
+  dtos: TopSoldProductItemDto[],
+): TopSoldProductItem[] {
+  return dtos.map(toTopSoldProductItem);
+}
+
+export function toTopSoldProductsQueryParams(filters: TopSoldFilters) {
+  const mode = filters.mode ?? "summary";
+  const params = new URLSearchParams({ mode });
+
+  if (mode === "list") {
+    if (filters.fromDate) {
+      params.set("from_date", filters.fromDate);
+    }
+
+    if (filters.toDate) {
+      params.set("to_date", filters.toDate);
+    }
+  }
+
+  return params;
 }
 
 export function toProductsQueryParams(input: {

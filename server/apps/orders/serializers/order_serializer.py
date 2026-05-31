@@ -6,7 +6,7 @@ from django.db.models import Max
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.orders.models import DeliveryDetail, Order, OrderProducts
+from apps.orders.models import Client, DeliveryDetail, Order, OrderProducts
 from apps.products.models import Product
 
 
@@ -55,6 +55,14 @@ class OrderSerializer(serializers.Serializer):
     )
     order_number = serializers.IntegerField(read_only=True)
 
+    def _resolve_client(self, client_name: str):
+        normalized_name = (client_name or "").strip()
+        client = Client.objects.filter(name=normalized_name, state=True).first()
+        if client:
+            return client
+
+        return Client.objects.create(name=normalized_name)
+
     def validate(self, data):
         if "order" not in data or not data["order"]:
             raise serializers.ValidationError("La orden no puede estar vacia")
@@ -81,6 +89,7 @@ class OrderSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         items = validated_data.pop("order")
+        client_name = validated_data["client_name"]
 
         with transaction.atomic():
             today = timezone.localdate()
@@ -97,8 +106,10 @@ class OrderSerializer(serializers.Serializer):
                     local_datetime, timezone.get_current_timezone()
                 )
 
+            client = self._resolve_client(client_name)
+
             order = Order.objects.create(
-                client_name=validated_data["client_name"],
+                client=client,
                 total=0,
                 order_number=order_number,
                 type=validated_data["type"],
@@ -130,6 +141,7 @@ class OrderSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         items = validated_data.pop("order")
+        client_name = validated_data["client_name"]
 
         with transaction.atomic():
             today = timezone.localdate()
@@ -142,7 +154,9 @@ class OrderSerializer(serializers.Serializer):
                     local_datetime, timezone.get_current_timezone()
                 )
 
-            instance.client_name = validated_data["client_name"]
+            client = self._resolve_client(client_name)
+
+            instance.client = client
             instance.type = validated_data["type"]
             instance.reserved_at = reserved_at
             instance.save()
@@ -191,11 +205,14 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
+    client_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = (
             "id",
             "order_number",
+            "created_date",
             "client_name",
             "total",
             "type",
@@ -207,9 +224,13 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     items = ProductItemSerializer(many=True, read_only=True)
 
+    def get_client_name(self, obj):
+        return obj.client.name if obj.client else ""
+
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     items = ProductItemSerializer(many=True, read_only=True)
+    client_name = serializers.SerializerMethodField()
     client_phone = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
     reference_note = serializers.SerializerMethodField()
@@ -228,6 +249,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "address",
             "reference_note",
         )
+
+    def get_client_name(self, obj):
+        return obj.client.name if obj.client else ""
 
     def _get_delivery_detail(self, obj):
         return DeliveryDetail.objects.filter(order=obj).first()

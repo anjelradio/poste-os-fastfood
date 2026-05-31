@@ -10,6 +10,7 @@ export const OrderItemSchema = z.object({
 export const OrderListItemSchema = z.object({
   id: z.number(),
   orderNumber: z.number(),
+  createdDate: z.string(),
   clientName: z.string(),
   total: z.string().or(z.number()),
   type: z.string(),

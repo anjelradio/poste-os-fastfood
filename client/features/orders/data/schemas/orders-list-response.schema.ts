@@ -10,6 +10,7 @@ export const OrderItemResponseDtoSchema = z.object({
 export const OrderListItemResponseDtoSchema = z.object({
   id: z.number(),
   order_number: z.number(),
+  created_date: z.string(),
   client_name: z.string(),
   total: z.string().or(z.number()),
   type: z.string(),

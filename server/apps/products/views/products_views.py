@@ -1,4 +1,9 @@
+from datetime import date, datetime
+from decimal import Decimal
+
 from django.shortcuts import get_object_or_404
+from django.db.models import Count, DecimalField, Sum, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import status
@@ -12,6 +17,7 @@ from apps.authentication.permissions import (
     IsAdminOrCajaOrCocina,
 )
 from apps.base.mixins import ErrorResponseMixin
+from apps.orders.models import OrderProducts
 from apps.products.models import Category
 from apps.products.serializers import (
     ProductListSerializer,
@@ -67,6 +73,46 @@ class ProductViewSet(ErrorResponseMixin, ModelViewSet):
 
         return None
 
+    def _parse_date_query_param(self, value):
+        if not value:
+            return None
+
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
+    def _build_top_sold_queryset(self, from_date: date, to_date: date):
+        return (
+            OrderProducts.objects.filter(
+                state=True,
+                order__state=True,
+                product__state=True,
+                order__created_date__range=[from_date, to_date],
+            )
+            .exclude(order__status="CANCELLED")
+            .values("product_id", "product__name", "product__image")
+            .annotate(
+                quantity_sold=Coalesce(Sum("quantity"), 0),
+                orders_count=Count("order_id", distinct=True),
+                revenue=Coalesce(
+                    Sum("subtotal"),
+                    Value(Decimal("0.00"), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                ),
+            )
+            .order_by("-quantity_sold", "-revenue", "product_id")
+        )
+
+    def _serialize_top_sold_item(self, row):
+        return {
+            "productId": row["product_id"],
+            "name": row["product__name"],
+            "image": row["product__image"],
+            "quantitySold": row["quantity_sold"],
+            "ordersCount": row["orders_count"],
+            "revenue": row["revenue"],
+        }
+
     def list(self, request):
         queryset = self.get_queryset()
 
@@ -113,6 +159,69 @@ class ProductViewSet(ErrorResponseMixin, ModelViewSet):
         products = self.get_queryset().filter(category=category)
         products_serializer = self.get_serializer(products, many=True)
         return Response(products_serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"], url_path="top-sold")
+    def top_sold(self, request):
+        mode = request.query_params.get("mode", "summary")
+        if mode not in ("summary", "list"):
+            return self.error_response(
+                {"mode": "El modo debe ser 'summary' o 'list'"},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if mode == "summary":
+            today = timezone.localdate()
+            from_date = date(today.year, 1, 1)
+            to_date = today
+        else:
+            from_date_raw = request.query_params.get("from_date")
+            to_date_raw = request.query_params.get("to_date")
+
+            if not from_date_raw or not to_date_raw:
+                return self.error_response(
+                    {"date": "Los parámetros from_date y to_date son obligatorios"},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
+            from_date = self._parse_date_query_param(from_date_raw)
+            to_date = self._parse_date_query_param(to_date_raw)
+
+            if from_date is None or to_date is None:
+                return self.error_response(
+                    {"date": "Formato de fecha inválido. Use YYYY-MM-DD"},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if from_date > to_date:
+                return self.error_response(
+                    {"date": "from_date no puede ser mayor que to_date"},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
+        queryset = self._build_top_sold_queryset(from_date, to_date)
+
+        if mode == "summary":
+            top_item = queryset.first()
+            item = self._serialize_top_sold_item(top_item) if top_item else None
+            return Response(
+                {
+                    "item": item,
+                    "from_date": from_date,
+                    "to_date": to_date,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        items = [self._serialize_top_sold_item(row) for row in queryset]
+        return Response(
+            {
+                "items": items,
+                "total": len(items),
+                "from_date": from_date,
+                "to_date": to_date,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def create(self, request):
         data = request.data.copy()

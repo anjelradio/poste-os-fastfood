@@ -13,11 +13,16 @@ import {
 } from "@/features/shared/data/types/api-result";
 import type { Product } from "../../domain/entities/product";
 import {
+  type TopSoldFilters,
   toProductEntity,
   toProductEntityList,
+  toTopSoldProductItem,
+  toTopSoldProductItemList,
+  toTopSoldProductsQueryParams,
   toProductsQueryParams,
   toProductRequestDto,
   type ProductsFilters,
+  type TopSoldProductItem,
 } from "../mappers/product.mapper";
 import {
   CreateProductRequestSchema,
@@ -28,10 +33,27 @@ import {
   type ProductsListResponseDto,
 } from "../schemas/products-list-response.schema";
 import { ProductResponseDtoSchema } from "../schemas/product-response.schema";
+import {
+  TopSoldProductListResponseSchema,
+  TopSoldProductSummaryResponseSchema,
+} from "../schemas/top-sold-products-response.schema";
 
 type ProductsListResponse = {
   products: Product[];
   total: number;
+};
+
+type TopSoldSummaryResponse = {
+  item: TopSoldProductItem | null;
+  fromDate: string;
+  toDate: string;
+};
+
+type TopSoldListResponse = {
+  items: TopSoldProductItem[];
+  total: number;
+  fromDate: string;
+  toDate: string;
 };
 
 const baseUrl = `${env.API_URL}/products`;
@@ -87,6 +109,45 @@ export const productsApi = {
       fallbackMessage: "Error al obtener los productos por categoria.",
       responseSchema: ProductResponseDtoSchema.array(),
       mapData: toProductEntityList,
+    });
+  },
+
+  async getTopSoldProductsSummary(): Promise<ApiResult<TopSoldSummaryResponse>> {
+    const token = await getAccessToken();
+    const params = toTopSoldProductsQueryParams({ mode: "summary" });
+
+    return apiRequestJson({
+      url: `${baseUrl}/top-sold/?${params.toString()}`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener el top producto.",
+      responseSchema: TopSoldProductSummaryResponseSchema,
+      mapData: (dto) => ({
+        item: dto.item ? toTopSoldProductItem(dto.item) : null,
+        fromDate: dto.from_date,
+        toDate: dto.to_date,
+      }),
+    });
+  },
+
+  async getTopSoldProductsList(filters: TopSoldFilters): Promise<ApiResult<TopSoldListResponse>> {
+    const token = await getAccessToken();
+    const params = toTopSoldProductsQueryParams({ ...filters, mode: "list" });
+
+    return apiRequestJson({
+      url: `${baseUrl}/top-sold/?${params.toString()}`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener el listado de productos más vendidos.",
+      responseSchema: TopSoldProductListResponseSchema,
+      mapData: (dto) => ({
+        items: toTopSoldProductItemList(dto.items),
+        total: dto.total,
+        fromDate: dto.from_date,
+        toDate: dto.to_date,
+      }),
     });
   },
 

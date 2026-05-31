@@ -30,7 +30,7 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
 
     def get_queryset(self):
         if self.queryset is None:
-            self.queryset = Order.objects.filter(state=True)
+            self.queryset = Order.objects.filter(state=True).select_related("client")
         return self.queryset
 
     def list(self, request):
@@ -40,12 +40,16 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
         order_status = request.query_params.get("status")
         order_type = request.query_params.get("type")
         user_id = request.query_params.get("user_id")
+        client_id = request.query_params.get("client_id")
         user_role = getattr(request.user, "role", None)
 
         if user_role == "CAJA":
             queryset = queryset.filter(user=request.user)
         elif user_id:
             queryset = queryset.filter(user_id=user_id)
+
+        if client_id:
+            queryset = queryset.filter(client_id=client_id)
 
         if user_role == "COCINA":
             date = str(timezone.localdate())

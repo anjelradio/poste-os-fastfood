@@ -1,5 +1,7 @@
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import ActionLinkButton from "@/features/shared/components/ui/ActionLinkButton";
+import { getTopSoldProductsSummaryAction } from "@/features/products/presentation/actions/product-actions";
+import Link from "next/link";
 import {
   DollarSign,
   Package,
@@ -9,11 +11,22 @@ import {
   Users,
 } from "lucide-react";
 
-export default function AdminPage() {
+function shortenProductName(name: string, maxLength = 20) {
+  if (name.length <= maxLength) {
+    return name;
+  }
+
+  return `${name.slice(0, maxLength - 3)}...`;
+}
+
+export default async function AdminPage() {
+  const topSoldResponse = await getTopSoldProductsSummaryAction();
+  const topProduct = topSoldResponse.ok ? topSoldResponse.data.item : null;
+
   return (
     <div className="flex-1 pb-10">
       {/* Top Stats Cards Row - All same height */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {/* VENTAS HOY Card */}
         <GradientCard
           gradientId="ventas-hoy"
@@ -78,7 +91,7 @@ export default function AdminPage() {
           </div>
         </GradientCard>
 
-        {/* TOP PRODUCTO Card */}
+        {/* TOP PRODUCTOS Card */}
         <GradientCard
           gradientId="top-producto"
           minHeight={120}
@@ -87,24 +100,34 @@ export default function AdminPage() {
           <div className="flex items-center justify-between h-full">
             <div>
               <p className="text-gray-300 text-xs font-medium mb-2 tracking-wide">
-                TOP PRODUCTO
+                TOP PRODUCTOS
               </p>
               <p className="text-white text-lg font-semibold">
-                Hamburguesa Porteña
+                {topProduct?.name
+                  ? shortenProductName(topProduct.name)
+                  : "Sin datos"}
               </p>
             </div>
 
             <div className="ml-2 flex-shrink-0">
-              {/*<img
-                src={burgerImage}
-                alt="Hamburguesa"
-                className="object-contain"
-                style={{
-                  filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5))",
-                  height: "3.5rem",
-                  width: "3.5rem",
-                }}
-              />*/}
+              <Link
+                href="/administracion/top-productos"
+                aria-label="Ver top productos"
+                className="block"
+              >
+                {topProduct?.image ? (
+                  <img
+                    src={topProduct.image}
+                    alt={topProduct.name}
+                    className="h-14 w-14 object-cover rounded-lg"
+                    style={{ filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5))" }}
+                  />
+                ) : (
+                  <div className="h-14 w-14 rounded-lg border border-white/20 bg-white/5 flex items-center justify-center">
+                    <Package className="h-7 w-7 text-gray-300" strokeWidth={2.2} />
+                  </div>
+                )}
+              </Link>
             </div>
           </div>
         </GradientCard>

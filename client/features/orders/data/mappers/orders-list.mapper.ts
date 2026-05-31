@@ -6,6 +6,7 @@ export type OrdersFilters = {
   status?: string;
   type?: string;
   userId?: number;
+  clientId?: number;
 };
 
 export function toOrdersQueryParams(filters: OrdersFilters = {}) {
@@ -15,6 +16,7 @@ export function toOrdersQueryParams(filters: OrdersFilters = {}) {
   if (filters.status) params.set("status", filters.status);
   if (filters.type) params.set("type", filters.type);
   if (filters.userId) params.set("user_id", String(filters.userId));
+  if (filters.clientId) params.set("client_id", String(filters.clientId));
 
   return params;
 }
@@ -23,6 +25,7 @@ export function toOrderListItemEntity(dto: OrderListItemResponseDto): OrderListI
   return {
     id: dto.id,
     orderNumber: dto.order_number,
+    createdDate: dto.created_date,
     clientName: dto.client_name,
     total: dto.total,
     type: dto.type,

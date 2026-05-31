@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { productsRepository } from "../../data/repositories/products.repository";
-import type { ProductsFilters } from "../../data/mappers/product.mapper";
+import type { ProductsFilters, TopSoldFilters } from "../../data/mappers/product.mapper";
 
 export async function getProductsAction(
   page: number,
@@ -44,4 +44,12 @@ export async function deleteProductAction(id: number) {
   }
 
   return response;
+}
+
+export async function getTopSoldProductsSummaryAction() {
+  return productsRepository.getTopSoldProductsSummary();
+}
+
+export async function getTopSoldProductsListAction(filters: TopSoldFilters) {
+  return productsRepository.getTopSoldProductsList({ ...filters, mode: "list" });
 }

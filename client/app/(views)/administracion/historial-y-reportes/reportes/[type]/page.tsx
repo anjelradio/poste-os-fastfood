@@ -5,24 +5,26 @@ import { inventoryRepository } from "@/features/inventory/data/repositories/inve
 import type { RawMaterial } from "@/features/inventory/domain/entities/raw-material";
 import { suppliersRepository } from "@/features/purchases/data/repositories/supplier.repository";
 import type { Supplier } from "@/features/purchases/domain/entities/supplier";
+import { productsRepository } from "@/features/products/data/repositories/products.repository";
+import type { Product } from "@/features/products/domain/entities/product";
 import ReportsTypeNavbar, {
   reportTypes,
   type ReportType,
 } from "@/features/reports/presentation/components/reports/ReportsTypeNavbar";
 import PurchasesReportForm from "@/features/reports/presentation/components/reports/PurchasesReportForm";
+import ProfitsReportForm from "@/features/reports/presentation/components/reports/ProfitsReportForm";
+import ProductSalesReportForm from "@/features/reports/presentation/components/reports/ProductSalesReportForm";
 
 const reportTypeDescriptions: Record<ReportType, string> = {
   ganancias: "Configura filtros para generar el reporte de ganancias.",
   compras: "Configura filtros para generar el reporte de compras.",
-  inventario: "Configura filtros para generar el reporte de inventario.",
   "ventas-producto": "Configura filtros para generar ventas por producto.",
 };
 
 const reportTypeTitles: Record<ReportType, string> = {
   ganancias: "Reporte de Ganancias",
   compras: "Reporte de Compras",
-  inventario: "Reporte de Inventario",
-  "ventas-producto": "Ventas por Producto",
+  "ventas-producto": "Reporte de Ventas por Producto",
 };
 
 function isReportType(value: string): value is ReportType {
@@ -42,6 +44,7 @@ export default async function ReportsByTypePage({
 
   let rawMaterials: RawMaterial[] = [];
   let suppliers: Supplier[] = [];
+  let products: Product[] = [];
   if (type === "compras") {
     const rawMaterialsResponse = await inventoryRepository.getRawMaterials();
     const suppliersResponse = await suppliersRepository.getSuppliers();
@@ -57,6 +60,14 @@ export default async function ReportsByTypePage({
     suppliers = suppliersResponse.data;
   }
 
+  if (type === "ventas-producto") {
+    const productsResponse = await productsRepository.getProducts(1, 500);
+    if (!productsResponse.ok) {
+      throw new Error(productsResponse.errors[0] ?? "Error al obtener productos.");
+    }
+    products = productsResponse.data.products;
+  }
+
   return (
     <div className="flex-1 pb-10">
       <ReturnHeading
@@ -68,6 +79,10 @@ export default async function ReportsByTypePage({
 
       {type === "compras" ? (
         <PurchasesReportForm rawMaterials={rawMaterials} suppliers={suppliers} />
+      ) : type === "ganancias" ? (
+        <ProfitsReportForm />
+      ) : type === "ventas-producto" ? (
+        <ProductSalesReportForm products={products} />
       ) : (
         <GradientCard
           gradientId={`report-content-${type}`}

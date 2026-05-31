@@ -1,5 +1,5 @@
 import { productsApi } from "../api/products-api";
-import type { ProductsFilters } from "../mappers/product.mapper";
+import type { ProductsFilters, TopSoldFilters } from "../mappers/product.mapper";
 
 export const productsRepository = {
   getProducts(
@@ -16,6 +16,14 @@ export const productsRepository = {
 
   getProductsByCategory(categorySlug: string) {
     return productsApi.getProductsByCategory(categorySlug);
+  },
+
+  getTopSoldProductsSummary() {
+    return productsApi.getTopSoldProductsSummary();
+  },
+
+  getTopSoldProductsList(filters: TopSoldFilters) {
+    return productsApi.getTopSoldProductsList(filters);
   },
 
   createProduct(data: unknown) {

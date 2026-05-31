@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 from apps.base.models import BaseModel
+from .client import Client
 
 
 class Order(BaseModel):
@@ -22,7 +23,14 @@ class Order(BaseModel):
     order_number = models.PositiveIntegerField(
         "Numero de orden", editable=False, blank=True, null=True, db_index=True
     )
-    client_name = models.CharField("Nombre del Cliente", max_length=50, default="")
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.PROTECT,
+        related_name="orders",
+        verbose_name="Cliente",
+        null=True,
+        blank=True,
+    )
     type = models.CharField(
         "Tipo de la orden",
         max_length=15,
@@ -55,4 +63,5 @@ class Order(BaseModel):
 
     def __str__(self):
         """Unicode representation of Order."""
-        return f"{self.client_name} - {self.status}"
+        client_name = self.client.name if self.client else "Sin cliente"
+        return f"{client_name} - {self.status}"
