@@ -21,8 +21,12 @@ export default async function ClientOrdersHistoryPage({
     getOrdersAction({ clientId }),
   ]);
 
-  if (!clientResponse.ok || !clientResponse.data) {
-    throw new Error(clientResponse.errors?.[0] ?? "Error al obtener cliente.");
+  if (!clientResponse.ok) {
+    throw new Error(clientResponse.errors[0] ?? "Error al obtener cliente.");
+  }
+
+  if (!clientResponse.data) {
+    throw new Error("Error al obtener cliente.");
   }
 
   if (!ordersResponse.ok) {
