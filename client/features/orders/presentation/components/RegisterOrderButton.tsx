@@ -5,12 +5,26 @@ import AppDialogModal from "@/features/shared/components/modals/AppDialogModal";
 import OrderActionButton from "./OrderActionButton";
 import CreateOrderForm from "./CreateOrderForm";
 import OrderForm from "./OrderForm";
+import InvoiceForm from "./InvoiceForm";
 import { useAppStore } from "@/lib/store/appStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PaymentType } from "../../domain/entities/order";
 
 export default function RegisterOrderButton() {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [paymentType, setPaymentType] = useState<PaymentType | null>(null);
   const { orderItems, clearOrder } = useAppStore();
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setTimeout(() => {
+        setStep(1);
+        setPaymentType(null);
+      }, 300);
+    }
+  };
 
   return (
     <>
@@ -25,9 +39,9 @@ export default function RegisterOrderButton() {
 
       <AppDialogModal
         open={open}
-        onOpenChange={setOpen}
-        title="Confirmar orden"
-        subtitle="Completa los datos para registrar la orden"
+        onOpenChange={handleOpenChange}
+        title={step === 1 ? "Confirmar orden" : "Datos de facturación"}
+        subtitle={step === 1 ? "Completa los datos para registrar la orden" : "Completa los datos para generar la factura"}
         size="full"
       >
         <div className="h-[70vh]">
@@ -49,8 +63,20 @@ export default function RegisterOrderButton() {
                 ))}
               </div>
             </div>
-            <CreateOrderForm onCancel={() => setOpen(false)}>
-              <OrderForm />
+            <CreateOrderForm 
+              onCancel={() => handleOpenChange(false)}
+              step={step}
+              setStep={setStep}
+            >
+              <div style={{ display: step === 1 ? 'block' : 'none' }}>
+                <OrderForm />
+              </div>
+              <div style={{ display: step === 2 ? 'block' : 'none' }}>
+                <InvoiceForm 
+                  paymentType={paymentType} 
+                  setPaymentType={setPaymentType} 
+                />
+              </div>
             </CreateOrderForm>
           </ScrollArea>
         </div>

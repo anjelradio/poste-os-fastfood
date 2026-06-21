@@ -14,7 +14,7 @@ import type { OrderDetail } from "../../domain/entities/order-detail";
 const baseUrl = `${env.API_URL}/orders`;
 
 export const ordersApi = {
-  async createOrder(data: unknown): Promise<ApiStatusResult> {
+  async createOrder(data: unknown): Promise<ApiResult<string>> {
     const input = parseWithSchema(RegisterOrderRequestSchema, data);
     if (!input.ok) {
       return input;
@@ -22,13 +22,29 @@ export const ordersApi = {
 
     const token = await getAccessToken();
 
-    return apiRequestStatus({
-      url: `${baseUrl}/`,
-      method: "POST",
-      token: token ?? undefined,
-      body: toCreateOrderRequestDto(input.data),
-      fallbackMessage: "Error al registrar la orden.",
+    const response = await fetch(`${baseUrl}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(toCreateOrderRequestDto(input.data)),
+      cache: 'no-store',
     });
+
+    if (!response.ok) {
+      try {
+        const errorData = await response.json();
+        const errors = Object.values(errorData).flat() as string[];
+        return { ok: false, errors };
+      } catch {
+        return { ok: false, errors: ['Error al registrar la orden.'] };
+      }
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const base64 = buffer.toString('base64');
+    return { ok: true, data: base64 };
   },
 
   async getOrderById(id: number): Promise<ApiResult<OrderDetail>> {

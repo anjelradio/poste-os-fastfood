@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import {
   CheckCircle,
   Clock,
@@ -12,6 +13,7 @@ import { useAppStore } from "@/lib/store/appStore";
 import { GradientCard } from "@/features/shared/components/ui/GradientCard";
 import AdminCashierOrderActions from "./AdminCashierOrderActions";
 import CookOrderActions from "./CookOrderActions";
+import { updateOrderStatus } from "@/actions/orders/update-order-status";
 
 interface OrderCardProps {
   order: OrderListItem;
@@ -31,6 +33,53 @@ function formatDateTime(isoString: string | null) {
 
 export default function OrderCard({ order }: OrderCardProps) {
   const { user } = useAppStore();
+  const [status, setStatus] = useState(order.status);
+  const [readyAt, setReadyAt] = useState(order.readyAt);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
+  useEffect(() => {
+    setStatus(order.status);
+    setReadyAt(order.readyAt);
+  }, [order.status, order.readyAt]);
+
+  const handleAction = async () => {
+    if (status === "PENDING") {
+      setIsUpdating(true);
+      try {
+        await updateOrderStatus(order.id);
+      } catch (err) {
+        setIsUpdating(false);
+        throw err;
+      }
+    } else if (status === "PREPARING") {
+      setIsUpdating(true);
+      // Immediately transition to READY locally to give visual feedback
+      setStatus("READY");
+      setReadyAt(new Date().toISOString());
+
+      try {
+        // Wait 1.2 seconds to show the completed checkmark and green color
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+
+        // Start fade out animation
+        setIsFadingOut(true);
+
+        // Wait another 500ms for transition animation to finish
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Call backend status update & revalidate tag to remove the card from the list
+        await updateOrderStatus(order.id);
+      } catch (err) {
+        // Revert all local states on error
+        setIsFadingOut(false);
+        setStatus("PREPARING");
+        setReadyAt(order.readyAt);
+        setIsUpdating(false);
+        throw err;
+      }
+    }
+  };
 
   const getOrderTypeMeta = () => {
     const typeConfig = {
@@ -91,7 +140,7 @@ export default function OrderCard({ order }: OrderCardProps) {
     } as const;
 
     return (
-      statusConfig[order.status as keyof typeof statusConfig] ??
+      statusConfig[status as keyof typeof statusConfig] ??
       statusConfig.PENDING
     );
   };
@@ -102,6 +151,11 @@ export default function OrderCard({ order }: OrderCardProps) {
   return (
     <GradientCard
       gradientId={`order-card-${order.id}`}
+      className={`transition-all duration-500 ease-in-out ${
+        isFadingOut
+          ? "opacity-0 scale-95 translate-y-2 blur-sm pointer-events-none"
+          : "opacity-100 scale-100 translate-y-0"
+      }`}
       contentClassName="h-full rounded-2xl p-5 flex flex-col"
       contentStyle={{ background: "transparent" }}
     >
@@ -166,17 +220,17 @@ export default function OrderCard({ order }: OrderCardProps) {
       <div className="pt-3 mb-3 border-t border-gray-600/30 space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">
-            {order.status === "READY"
+            {status === "READY"
               ? "Entregado"
-              : order.status === "CANCELLED"
+              : status === "CANCELLED"
                 ? "Cancelado"
                 : "Hora de entrega"}
           </span>
-          {order.status === "CANCELLED" ? (
+          {status === "CANCELLED" ? (
             <p className="text-red-400 text-xs font-bold">Orden cancelada</p>
-          ) : order.readyAt ? (
+          ) : readyAt ? (
             <p className="text-green-400 text-xs font-bold">
-              {formatDateTime(order.readyAt)}
+              {formatDateTime(readyAt)}
             </p>
           ) : (
             <p className="text-orange-400 text-xs font-bold italic">
@@ -187,7 +241,12 @@ export default function OrderCard({ order }: OrderCardProps) {
       </div>
 
       {user?.role === "COCINA" && (
-        <CookOrderActions orderId={order.id} status={order.status} />
+        <CookOrderActions
+          orderId={order.id}
+          status={status}
+          isUpdating={isUpdating}
+          onAction={handleAction}
+        />
       )}
 
       {(user?.role === "CAJA" || user?.role === "ADMIN") && (

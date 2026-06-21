@@ -11,6 +11,11 @@ export function toCreateOrderRequestDto(data: RegisterOrderRequest) {
       id: item.id,
       quantity: item.quantity,
     })),
+    invoice: {
+      nit: data.nit,
+      payment_type: data.paymentType,
+      email: data.email || "",
+    },
   };
 
   if (data.orderType === "DELIVERY") {

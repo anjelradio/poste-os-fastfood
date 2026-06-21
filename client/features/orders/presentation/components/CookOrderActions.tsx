@@ -2,18 +2,26 @@
 
 import { CheckCircle, ChefHat, Clock, XCircle } from "lucide-react";
 import { useTransition } from "react";
-import { updateOrderStatus } from "@/actions/orders/update-order-status";
 
-export default function CookOrderActions({ orderId, status }: any) {
+interface CookOrderActionsProps {
+  orderId: number;
+  status: string;
+  isUpdating: boolean;
+  onAction: () => Promise<void>;
+}
+
+export default function CookOrderActions({ orderId, status, isUpdating, onAction }: CookOrderActionsProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     startTransition(async () => {
-      await updateOrderStatus(orderId);
+      await onAction();
     });
   };
+
+  const isDisabled = isPending || isUpdating;
 
   if (status === "READY" || status === "CANCELLED") {
     return (
@@ -36,9 +44,9 @@ export default function CookOrderActions({ orderId, status }: any) {
     <form onSubmit={handleSubmit}>
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isDisabled}
         className={`w-full px-4 py-2 rounded-xl border-2 border-green-500/50 text-green-400 font-semibold text-sm hover:bg-green-500/10 hover:border-green-400/70 transition-all duration-200 flex items-center justify-center gap-2 ${
-          isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+          isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
         }`}
       >
         {status === "PENDING" ? (
@@ -46,7 +54,7 @@ export default function CookOrderActions({ orderId, status }: any) {
         ) : (
           <Clock className="h-4 w-4" />
         )}
-        {isPending ? "Actualizando..." : status === "PENDING" ? "Comenzar" : "Marcar Listo"}
+        {isDisabled ? "Actualizando..." : status === "PENDING" ? "Comenzar" : "Marcar Listo"}
       </button>
     </form>
   );

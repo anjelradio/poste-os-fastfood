@@ -13,9 +13,16 @@ import type {
 } from "@/features/shared/data/types/api-result";
 import type { MeasureUnit } from "../../domain/entities/measure-unit";
 import type { RawMaterial } from "../../domain/entities/raw-material";
+import type { InventoryMovement } from "../../domain/entities/inventory-movement";
 import {
   MeasureUnitsListResponseSchema,
 } from "../schemas/measure-units-list-response.schema";
+import {
+  InventoryMovementsListResponseSchema,
+} from "../schemas/inventory-movement-response.schema";
+import {
+  toInventoryMovementEntityList,
+} from "../mappers/inventory-movement.mapper";
 import {
   RawMaterialResponseDtoSchema,
   RawMaterialsListResponseSchema,
@@ -116,6 +123,20 @@ export const inventoryApi = {
       method: "DELETE",
       token: token ?? undefined,
       fallbackMessage: "Error al eliminar la materia prima.",
+    });
+  },
+
+  async getInventoryMovements(): Promise<ApiResult<InventoryMovement[]>> {
+    const token = await getAccessToken();
+
+    return apiRequestJson({
+      url: `${baseUrl}/movements/`,
+      method: "GET",
+      cache: "no-store",
+      token: token ?? undefined,
+      fallbackMessage: "Error al obtener los movimientos de inventario.",
+      responseSchema: InventoryMovementsListResponseSchema,
+      mapData: toInventoryMovementEntityList,
     });
   },
 };

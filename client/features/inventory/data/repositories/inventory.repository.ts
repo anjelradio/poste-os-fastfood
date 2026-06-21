@@ -24,4 +24,8 @@ export const inventoryRepository = {
   deleteRawMaterial(id: number) {
     return inventoryApi.deleteRawMaterial(id);
   },
+
+  getInventoryMovements() {
+    return inventoryApi.getInventoryMovements();
+  },
 };

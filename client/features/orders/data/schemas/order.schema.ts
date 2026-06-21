@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OrderType } from "../../domain/entities/order";
+import { OrderType, PaymentType } from "../../domain/entities/order";
 
 export const RegisterOrderRequestSchema = z.object({
   clientName: z.string().min(1, "El nombre del Cliente es Obligatorio"),
@@ -34,6 +34,18 @@ export const RegisterOrderRequestSchema = z.object({
   referenceNote: z.preprocess(
     (value) => (value == null ? "" : value),
     z.string().optional(),
+  ),
+  nit: z.string().min(1, "El NIT es obligatorio"),
+  paymentType: z.preprocess(
+    (value) => (value == null ? "" : value),
+    z.string().min(1, "El tipo de pago es obligatorio").refine(
+      (value) => Object.values(PaymentType).includes(value as PaymentType),
+      "Tipo de pago inválido",
+    ),
+  ),
+  email: z.preprocess(
+    (value) => (value == null || value === "" ? undefined : value),
+    z.string().email("Correo electrónico inválido").optional(),
   ),
 }).superRefine((data, ctx) => {
   if (data.orderType === OrderType.DELIVERY) {
