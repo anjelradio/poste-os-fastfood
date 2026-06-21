@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -6,6 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.permissions import IsAdmin
 from apps.base.mixins import ErrorResponseMixin
+from apps.inventory.models import InventoryMovement
 from apps.purchases.models import Purchase
 from apps.purchases.serializers import (
     PurchaseDetailSerializer,
@@ -57,11 +59,11 @@ class PurchaseViewSet(ErrorResponseMixin, GenericViewSet):
         )
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return self.error_response(serializer.errors)
 
-        purchase = serializer.create(serializer.validated_data)
+        purchase = serializer.save()
 
         create_logbook(
             request,
@@ -78,12 +80,12 @@ class PurchaseViewSet(ErrorResponseMixin, GenericViewSet):
 
     def update(self, request, pk=None):
         purchase = get_object_or_404(self.get_queryset(), pk=pk)
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer(purchase, data=request.data)
 
         if not serializer.is_valid():
             return self.error_response(serializer.errors)
 
-        serializer.update(purchase, serializer.validated_data)
+        serializer.save()
 
         create_logbook(
             request,
@@ -98,9 +100,24 @@ class PurchaseViewSet(ErrorResponseMixin, GenericViewSet):
         if purchase is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        purchase.state = False
-        purchase.deleted_date = timezone.localdate()
-        purchase.save(update_fields=["state", "deleted_date"])
+        with transaction.atomic():
+            purchase.state = False
+            purchase.deleted_date = timezone.localdate()
+            purchase.save(update_fields=["state", "deleted_date"])
+
+            # Revert stock impact
+            for detail in purchase.items.all():
+                raw_mat = detail.raw_material
+                raw_mat.stock -= detail.quantity
+                raw_mat.save(update_fields=["stock"])
+
+                # Log adjustment/reversal in InventoryMovement
+                InventoryMovement.objects.create(
+                    raw_material=raw_mat,
+                    quantity=detail.quantity,
+                    movement_type=InventoryMovement.MovementType.ADJUSTMENT_OUT,
+                    reason=f"Reversión de stock por eliminación de Compra #{purchase.id}",
+                )
 
         create_logbook(
             request,

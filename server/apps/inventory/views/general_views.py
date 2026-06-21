@@ -10,6 +10,7 @@ from apps.inventory.serializers import (
     MeasureUnitSerializer,
     RawMaterialListSerializer,
     RawMaterialSerializer,
+    InventoryMovementSerializer,
 )
 
 
@@ -50,3 +51,13 @@ class RawMaterialViewSet(ErrorResponseMixin, ModelViewSet):
         raw_material.deleted_date = timezone.localdate()
         raw_material.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class InventoryMovementListAPIView(ListAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = InventoryMovementSerializer
+
+    def get_queryset(self):
+        model = self.get_serializer().Meta.model
+        return model.objects.all().select_related("raw_material").order_by("-created_at")
+

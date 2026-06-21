@@ -1,3 +1,8 @@
-from .general_views import MeasureUnitListAPIView, RawMaterialViewSet
+from .general_views import (
+    MeasureUnitListAPIView,
+    RawMaterialViewSet,
+    InventoryMovementListAPIView,
+)
 
-__all__ = ["MeasureUnitListAPIView", "RawMaterialViewSet"]
+__all__ = ["MeasureUnitListAPIView", "RawMaterialViewSet", "InventoryMovementListAPIView"]
+

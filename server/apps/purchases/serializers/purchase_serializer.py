@@ -4,7 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.inventory.models import RawMaterial
+from apps.inventory.models import RawMaterial, InventoryMovement
 from apps.purchases.models import Purchase, PurchaseDetail, Supplier
 
 
@@ -93,6 +93,18 @@ class PurchaseSerializer(serializers.Serializer):
                 )
                 total += subtotal
 
+                # Update stock
+                raw_material.stock += quantity
+                raw_material.save(update_fields=["stock"])
+
+                # Create inventory movement log
+                InventoryMovement.objects.create(
+                    raw_material=raw_material,
+                    quantity=quantity,
+                    movement_type=InventoryMovement.MovementType.PURCHASE,
+                    reason=f"Ingreso de stock por Compra #{purchase.id}",
+                )
+
             purchase.total = total
             purchase.save(update_fields=["total"])
 
@@ -106,6 +118,22 @@ class PurchaseSerializer(serializers.Serializer):
             instance.supplier = Supplier.objects.get(id=validated_data["supplier_id"], state=True)
             instance.save(update_fields=["description", "supplier"])
 
+            # Revert old stock changes
+            old_details = list(PurchaseDetail.objects.filter(purchase=instance))
+            for detail in old_details:
+                raw_mat = detail.raw_material
+                raw_mat.stock -= detail.quantity
+                raw_mat.save(update_fields=["stock"])
+
+                # Log adjustment/reversal
+                InventoryMovement.objects.create(
+                    raw_material=raw_mat,
+                    quantity=detail.quantity,
+                    movement_type=InventoryMovement.MovementType.ADJUSTMENT_OUT,
+                    reason=f"Reversión de stock por modificación de Compra #{instance.id}",
+                )
+
+            # Delete old details
             PurchaseDetail.objects.filter(purchase=instance).delete()
 
             total = Decimal("0.00")
@@ -122,6 +150,18 @@ class PurchaseSerializer(serializers.Serializer):
                     unit_price=unit_price,
                 )
                 total += subtotal
+
+                # Update stock
+                raw_material.stock += quantity
+                raw_material.save(update_fields=["stock"])
+
+                # Create new inventory movement log
+                InventoryMovement.objects.create(
+                    raw_material=raw_material,
+                    quantity=quantity,
+                    movement_type=InventoryMovement.MovementType.PURCHASE,
+                    reason=f"Ingreso de stock por Compra #{instance.id} (modificada)",
+                )
 
             instance.total = total
             instance.save(update_fields=["total"])

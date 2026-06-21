@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -7,6 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.permissions import IsAdminOrCaja, IsAdminOrCajaOrCocina
 from apps.base.mixins import ErrorResponseMixin
+from apps.inventory.services import InventoryService
 from apps.orders.models import Order
 from apps.orders.serializers import (
     OrderDetailSerializer,
@@ -24,7 +26,7 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
     detail_serializer_class = OrderDetailSerializer
 
     def get_permissions(self):
-        if self.action == "list":
+        if self.action in ["list", "change_status"]:
             return [IsAdminOrCajaOrCocina()]
         return super().get_permissions()
 
@@ -84,6 +86,14 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
                 Logbook.ActionChoices.CREATE,
                 f"Orden nro {order.order_number} creada",
             )
+            
+            # Retornar el PDF de la factura
+            pdf_bytes = getattr(order, '_invoice_pdf', None)
+            if pdf_bytes:
+                response = HttpResponse(pdf_bytes, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="factura_orden_{order.order_number}.pdf"'
+                return response
+                
             return Response(status=status.HTTP_201_CREATED)
 
         return self.error_response(order_serializer.errors)
@@ -148,6 +158,9 @@ class OrderViewSet(ErrorResponseMixin, GenericViewSet):
         old_status = order.status
         order.status = Order.Status.CANCELLED
         order.save()
+
+        # Devolver la materia prima al inventario
+        InventoryService.restore_stock(order)
 
         create_logbook(
             request,

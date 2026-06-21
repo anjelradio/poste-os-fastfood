@@ -6,7 +6,9 @@ from django.db.models import Max
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.orders.models import Client, DeliveryDetail, Order, OrderProducts
+from apps.inventory.services import InventoryService
+from apps.orders.models import Client, DeliveryDetail, Order, OrderProducts, Invoice
+from apps.orders.services.invoice_service import InvoiceService
 from apps.products.models import Product
 
 
@@ -27,6 +29,13 @@ class OrderItems(serializers.Serializer):
             "invalid": "La cantidad debe ser un numero",
         },
     )
+
+
+class InvoiceDataSerializer(serializers.Serializer):
+    nit = serializers.CharField(max_length=30, required=True)
+    payment_type = serializers.ChoiceField(choices=Invoice.PaymentType.choices, required=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+
 
 
 class OrderSerializer(serializers.Serializer):
@@ -53,6 +62,7 @@ class OrderSerializer(serializers.Serializer):
             "empty": "La orden no puede estar vacia",
         },
     )
+    invoice = InvoiceDataSerializer(required=True)
     order_number = serializers.IntegerField(read_only=True)
 
     def _resolve_client(self, client_name: str):
@@ -85,9 +95,13 @@ class OrderSerializer(serializers.Serializer):
                     {"address": "La dirección es obligatoria para envío"}
                 )
 
+        # Validar que haya stock suficiente para todos los productos
+        InventoryService.validate_stock(data["order"])
+
         return data
 
     def create(self, validated_data):
+        invoice_data = validated_data.pop("invoice")
         items = validated_data.pop("order")
         client_name = validated_data["client_name"]
 
@@ -127,6 +141,9 @@ class OrderSerializer(serializers.Serializer):
                 )
                 total += subtotal
 
+            # Descontar materia prima del inventario
+            InventoryService.consume_stock(order, items)
+
             if validated_data["type"] == Order.OrderType.DELIVERY:
                 DeliveryDetail.objects.create(
                     order=order,
@@ -137,6 +154,26 @@ class OrderSerializer(serializers.Serializer):
 
         order.total = total
         order.save()
+        
+        # Crear la factura asociada
+        invoice = Invoice.objects.create(
+            order=order,
+            nit=invoice_data['nit'],
+            email=invoice_data.get('email', '') or '',
+            payment_type=invoice_data['payment_type'],
+            total=order.total,
+        )
+
+        # Generar el PDF
+        pdf_bytes = InvoiceService.build_invoice_pdf(order, invoice)
+        
+        # Enviar email si hay un correo
+        if invoice.email:
+            InvoiceService.send_invoice_email(invoice.email, pdf_bytes, order)
+            
+        # Adjuntar temporalmente los bytes del PDF al objeto orden para que la vista lo retorne
+        order._invoice_pdf = pdf_bytes
+
         return order
 
     def update(self, instance, validated_data):
